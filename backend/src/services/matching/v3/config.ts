@@ -5,7 +5,7 @@ import { InputError } from "../../../utils/api-validation";
 import type { ScoringConfig } from "../../../generated/prisma/client";
 
 export const ENGINE_VERSION = "matching-v3.0.0";
-export const IMPLEMENTATION_STAGE = 3;
+export const IMPLEMENTATION_STAGE = 4;
 export const SCORING_AVAILABLE = true;
 export const BUILTIN_NAME = "Matching V3";
 export const groups = ["CB", "FULLBACK", "MIDFIELD", "CAM", "WING", "ST", "GK"] as const;

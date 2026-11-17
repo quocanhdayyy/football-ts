@@ -1,3 +1,4 @@
+import { matchingV3OpenApi } from "../docs/matching-v3.openapi";
 import { endpoint } from "../utils/api-handler";
 import { currentUser, ownerScope } from "../middleware/auth.middleware";
 import { readInteger, readText, InputError } from "../utils/api-validation";
@@ -75,3 +76,8 @@ const batchV3 = (discover: boolean) => endpoint(async (req, res) => {
     ownerScope(res), { actorId: currentUser(res).id, ipAddress: req.ip ?? null }) });
 });
 export const matchingRankV3 = batchV3(false), matchingSearchV3 = batchV3(true);
+
+export const openApiV3 = endpoint(async (_req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json(matchingV3OpenApi);
+});

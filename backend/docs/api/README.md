@@ -7,6 +7,7 @@ Chọn mục để đọc đúng phần cần dùng:
 - [Tính điểm và lưu kết quả Matching](#matching)
 - [Tự tìm ứng viên](#search)
 - [Matching V3 — F/S/R, xếp hạng và lịch sử](#matching-v3)
+- [Bàn giao FE, OpenAPI và thứ tự gọi](#fe-handoff)
 
 ## Access
 
@@ -33,7 +34,7 @@ API `/api/player-stats/:id` dùng **ID thống kê**, trả `playerId` và `play
 
 API danh sách `/api/player-stats` giữ dữ liệu cơ bản và `estimate`; phần `metrics` chỉ trả trong API chi tiết để tránh tải bằng chứng của toàn bộ cầu thủ cùng lúc.
 
-V3 có namespace riêng `/api/matching/v3`; template hiện trả `implementationStage:3`, `scoringAvailable:true`, `roleScoringAvailable:true`. [Hợp đồng V3](#matching-v3) bên dưới. Admin có thể nhập `positionMinutes` kèm `positionMinutesSource` qua CRUD thống kê, và `bodyRegion` qua `/api/injury-history`. Chỉ sửa phút theo vị trí không xóa metrics; sửa thống kê nền sẽ xóa bộ suy luận. Các endpoint `/api/matching/*` không có `/v3` vẫn dùng công thức V1.
+V3 có namespace riêng `/api/matching/v3`; template hiện trả `implementationStage:4`, `scoringAvailable:true`, `roleScoringAvailable:true`. [Hợp đồng V3](#matching-v3) bên dưới. Admin có thể nhập `positionMinutes` kèm `positionMinutesSource` qua CRUD thống kê, và `bodyRegion` qua `/api/injury-history`. Chỉ sửa phút theo vị trí không xóa metrics; sửa thống kê nền sẽ xóa bộ suy luận. Các endpoint `/api/matching/*` không có `/v3` vẫn dùng công thức V1.
 
 ### Admin đầu tiên
 
@@ -636,3 +637,79 @@ Response có envelope `{status:"success",data:...}`. Evaluate trả `status` COM
 Rank/search trả `ranked`, `incomplete`, `excluded`, `meta`. Xếp hạng toàn bộ rồi mới giới hạn topN và phân trang. Ba danh sách phân trang độc lập cùng page/pageSize; `rankedPages` cho danh sách xếp hạng, `totalPages` cho trang xa nhất của cả ba; `rankedCount` là tổng người đủ điểm trước topN. `meta.totalCandidates` là số ứng viên được xét. Mở chi tiết từng người để giải thích thiếu/loại, không coi null là 0.
 
 `save:true` chỉ lưu COMPLETE vào MatchResult + AuditLog; đọc lại qua GET `/api/match-results/:id` theo phân quyền hiện có. Snapshot có `engineVersion`, nguồn, cấu hình và trọng số thực của lần tính. Thay dữ liệu hiện tại không sửa lịch sử cũ. Không tự thêm shortlist. Form `/login` có mục V3 riêng; form Matching cũ vẫn gọi V1.
+
+
+<a id="fe-handoff"></a>
+
+## Bàn giao FE — giai đoạn 4
+
+Hợp đồng máy đọc: [matching-v3.openapi.json](matching-v3.openapi.json). Import file này vào Postman hoặc công cụ hỗ trợ OpenAPI 3.0; đổi server URL thành backend đang chạy. File bao gồm sáu API chấm điểm/cấu hình V3 và các thao tác đăng nhập, nhu cầu CLB, báo giá, lịch sử, shortlist cần cho luồng FE; **không phải tài liệu mọi CRUD**. Admin chuẩn bị hồ sơ/hợp đồng/y tế theo các mục thực thể ở trên.
+
+`GET /api/matching/v3/openapi` cũng trả cùng tài liệu JSON nguyên bản, không có envelope `status/data`, cần Bearer token như các route V3 khác. File không chứa mật khẩu/token. Sinh lại bằng `npm run matching:v3:openapi`; kiểm tra file không bị cũ bằng `npm run matching:v3:openapi -- --check`. Registry vai trò, chiến lược và phiên bản lấy từ mã nguồn; kiểm thử kiểm tra file export khớp route thực.
+
+### Thứ tự gọi trong ứng dụng FE
+
+| Bước | API | ID cần giữ / cách xử lý |
+| --- | --- | --- |
+| 1. Đăng nhập | POST `/api/auth/login` | Giữ accessToken và expiresAt; token là chuỗi opaque, không giải mã JWT |
+| 2. Nạp form | GET `/api/clubs`, GET `/api/matching/v3/template` | Chọn clubId, vị trí, roleIds và chiến lược |
+| 3. Lưu nhu cầu | POST `/api/club-requirements` | Lấy `data.id` làm **requirementId**; owner lấy từ token |
+| 4. Báo giá, nếu đã có | POST `/api/matching-inputs` | Gắn requirementId + playerId; giữ ID báo giá để PATCH |
+| 5. Tìm ứng viên | POST `/api/matching/v3/search` | Gửi requirementId, season, roleIds, strategy/options; hiển thị ba nhóm ranked/incomplete/excluded |
+| 6. Xem/chấm riêng | POST `/api/matching/v3/evaluate` | Gửi playerId; xem điểm, tiêu chí, cảnh báo và phần thiếu |
+| 7. Lưu lần tính | evaluate với save:true | Chỉ COMPLETE mới saved:true và có resultId; không tự thêm shortlist |
+| 8. Chọn cầu thủ | POST `/api/shortlists` | user chọn thì gửi playerId, requirementId, note; trùng cùng danh sách trả 409 |
+| 9. Xem lại | GET `/api/match-results/:id`, GET `/api/shortlists` | Snapshot giữ đầu vào cũ. Sửa nhu cầu hoặc báo giá phải gọi Matching lại |
+
+Các API CRUD dùng envelope `{status:"success",data:...}`. Live Matching trả điểm number/null; lịch sử và các trường tiền của Prisma Decimal trả chuỗi. Không dùng `Number(null)` để hiển thị điểm vì sẽ thành 0. HTTP 200 chưa chắc đủ điểm: kiểm tra `data.status`, `complete`, `missing`, `excluded` và `saved`.
+
+**Không nhầm các ID:** `/players/:id` nhận playerId; `/player-stats/:id` nhận ID thống kê; requirementId là ID nhu cầu, không phải clubId. Ví dụ Haaland playerId 1700, ID thống kê 1621 trong dữ liệu local này; máy khác cần tra theo response, không hardcode ID vào FE.
+
+Khi tạo nhu cầu, gửi đủ clubId/position/minAge/maxAge/budget/salaryLimit/priority. Với V3, bộ lọc tuổi chỉ bật khi gửi thêm options.minimumAge/maximumAge khi gọi Matching; FE có thể chuyển hai giá trị người dùng nhập sang options nếu muốn lọc cứng. Các vai trò phải thuộc nhóm vị trí cần: CB → CB; RB/LB → FULLBACK; CM/CDM → MIDFIELD; CAM → CAM; LW/RW → WING; ST → ST; GK → GK. Lọc menu vai trò từ `template.roles` theo nhóm này.
+
+Báo giá phải biết ít nhất phí hoặc lương dự kiến và **mỗi số tiền phải có nguồn đi kèm**. Ví dụ:
+
+```json
+{
+  "playerId": 1700,
+  "requirementId": 42,
+  "estimatedFee": "60000000",
+  "feeSource": "Báo giá do scout cung cấp",
+  "expectedSalaryPerYear": "10000000",
+  "salarySource": "Yêu cầu lương do scout cung cấp"
+}
+```
+
+Các con số trên chỉ minh họa payload, không phải dữ liệu thật của Haaland. Khi bỏ lương ở PATCH, gửi cả `expectedSalaryPerYear:null` và `salarySource:null`; không thể bỏ cả phí và lương cùng lúc (muốn bỏ cả bản ghi dùng DELETE matching-inputs/:id). Đây là đầu vào do người dùng cung cấp, không tự được xác minh bởi engine.
+
+### Gọi API từ FE
+
+Ví dụ helper tối thiểu (truyền token từ state phiên của ứng dụng):
+
+```js
+const API_BASE = "http://localhost:3000/api";
+async function api(path, { token, method = "GET", body } = {}) {
+  const response = await fetch(API_BASE + path, {
+    method,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+  if (response.status === 204) return null;
+  const payload = await response.json();
+  if (!response.ok) {
+    const error = new Error(payload.message || "Không gọi được API");
+    error.status = response.status;
+    throw error;
+  }
+  return payload.data;
+}
+```
+
+Helper này dùng cho API envelope, không dùng cho route OpenAPI trả JSON nguyên bản. 401: xóa phiên trong FE và về đăng nhập; 403: thiếu quyền; 404: ID không tồn tại hoặc ngoài phạm vi; 409: cấu hình/xung đột cần xử lý theo message. INCOMPLETE/EXCLUDED là kết quả nghiệp vụ HTTP 200, không phải lỗi mạng. Lịch sử chỉ giữ khi saved:true. Khi chuyển trang search, dùng page/pageSize trên cùng điều kiện; ba danh sách phân trang độc lập và totalPages có thể lớn hơn rankedPages.
+
+Các mã thường gặp: `wageForEligibility`/`financial.salary` = thiếu lương dự kiến; `financial.contract` = thiếu thời hạn hợp đồng hợp lệ; `risk.injuryCoverage24Months` = chưa xác minh đủ lịch sử; `feeAboveTolerance`/`wageAboveTolerance` = vượt dung sai; `positionNotEligible` = không đủ điều kiện chuyển nhóm; `roleScoreBelowMinimum` = điểm vai trò thấp hơn ngưỡng. Mã `squad.<role>.<metric>:<reason>` nêu chỉ số và lý do cụ thể; FE giữ chi tiết/cảnh báo, không thay dữ liệu thiếu bằng 0.
+
+FE ở máy khác cần một backend URL truy cập được hoặc database/dữ liệu của riêng máy đó. Clone Git chỉ lấy mã nguồn/migration, không mang PostgreSQL trên máy tác giả theo. Không cần FE kết nối thẳng vào database; FE gọi backend API.

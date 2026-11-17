@@ -7,6 +7,7 @@ Chọn mục để đọc đúng phần cần dùng:
 - [Ước tính theo bằng chứng cá nhân](#estimation)
 - [Đầu vào thống kê V3](#v3-metrics)
 - [V3 giai đoạn 3: F/S/R và tìm ứng viên](#v3-stage-3)
+- [V3 giai đoạn 4: kiểm chứng và bàn giao](#v3-stage-4)
 
 ## Overview
 
@@ -428,7 +429,7 @@ Mục này ghi lại phạm vi ngày 12/11/2026: **cấu hình và dữ liệu �
 | 1 | Ma trận, cấu hình có phiên bản, cấu trúc và kiểm kê đầu vào | Hoàn thành |
 | 2 | Tập tham chiếu, percentile, làm mượt và điểm 35 vai trò | Hoàn thành, xem phần giai đoạn 2 bên dưới |
 | 3 | F/R V3, điểm tổng, lọc và xếp hạng | Hoàn thành; có API, lưu lịch sử và form test |
-| 4 | Hoàn thiện bàn giao FE, kiểm định mô hình và độ phủ dữ liệu thực | Chưa thực hiện; API và form thử cơ bản đã đưa vào giai đoạn 3 |
+| 4 | Bàn giao FE, kiểm thử toàn luồng và audit độ phủ | Hoàn thành phần kỹ thuật; dữ liệu thật và kiểm định tuyển trạch độc lập còn giới hạn ở mục giai đoạn 4 |
 
 ### Những phần đã có
 
@@ -445,7 +446,7 @@ Một số lựa chọn kỹ thuật còn mở trong báo cáo được khai bá
 
 ### API cấu hình và nhập trường bổ sung
 
-Ở thời điểm giai đoạn 1, template trả `implementationStage: 1`, `scoringAvailable: false`. Hiện tại template trả **3 / true**; xem hợp đồng chấm điểm giai đoạn 3 bên dưới.
+Ở thời điểm giai đoạn 1, template trả `implementationStage: 1`, `scoringAvailable: false`. Hiện tại template trả **4 / true**; xem hợp đồng chấm điểm giai đoạn 3 bên dưới.
 
 Trang `/login` có mục **Matching V3 — Giai đoạn 1** ngay dưới nút kiểm tra phiên. Sau khi đăng nhập, trang tự tải bốn chiến lược từ API; chọn chiến lược sẽ hiển thị trọng số F/S/R tương ứng. Có nút tải lại cấu hình và lựa chọn đọc JSON trong mục thử API. Lựa chọn này chỉ để xem cấu hình, chưa ghi vào database hoặc áp dụng cho các form tính điểm cũ. Làm mới trang nếu đang mở bản UI trước đó.
 
@@ -624,3 +625,49 @@ npm run test:login
 
 
 Kiểm tra trên dữ liệu local ngày 17/11/2026: 2.684 cầu thủ, 96 CLB, 2.684 bộ thống kê và metrics; chưa có MatchingInput, hợp đồng, lịch sử/xác minh chấn thương. Search nhu cầu ST với điều kiện mặc định xét 2.684 người: 51 INCOMPLETE, 2.633 EXCLUDED, 0 COMPLETE. Haaland S = 93,13; thiếu lương, thời hạn hợp đồng và xác minh y tế nên tổng null. Search + evaluate trong lần smoke test khoảng 0,9 giây; đây là phép đo local đơn lẻ, chưa phải kiểm thử tải. Nhu cầu/tài khoản thử được xóa và số bản ghi dữ liệu gốc/lịch sử trước sau giữ nguyên.
+
+
+<a id="v3-stage-4"></a>
+
+## V3 giai đoạn 4 — kiểm chứng và bàn giao
+
+Ngày 17/11/2026, hoàn tất phần kỹ thuật: hợp đồng OpenAPI có thể export/import; luồng FE được kiểm thử qua HTTP; bộ kiểm thử V3 và hồi quy V1 có một lệnh chạy tuần tự; audit dữ liệu chỉ đọc PostgreSQL. Template hiện `implementationStage:4`, engine vẫn `matching-v3.0.0`, công thức và ma trận giữ phiên bản đã chốt. [Hướng dẫn bàn giao FE](../api/README.md#fe-handoff).
+
+### Chạy audit dữ liệu thật
+
+```bash
+npm run matching:v3:audit -- --season 2025/2026
+```
+
+Lệnh chỉ SELECT trong transaction `READ ONLY`, không seed hay ghi cache/cấu hình/MatchResult. Xuất `data/v3-metrics/stage-4-readiness.json` (gitignore); lỗi mùa/không có dữ liệu sẽ không ghi đè báo cáo cũ. Report ghi ngày đánh giá, hash tập dữ liệu, cấu hình V3 mặc định, phạm vi/nguồn, trạng thái ước tính, tỷ lệ thiếu và số người chấm được theo từng vai trò. Dùng cấu hình mặc định để đối chiếu, không tự dùng cấu hình active tùy chỉnh. Chạy lại sau khi bổ sung dữ liệu.
+
+Kết quả audit local ngày 17/11/2026:
+
+| Chỉ tiêu | Kết quả |
+| --- | ---: |
+| Cầu thủ top 5 / bộ thống kê / metrics | 2.684 / 2.684 / 2.684 |
+| Metrics cũ hoặc sai định dạng | 0 |
+| Có ít nhất một vai trò nhóm chính tính được — PROTOTYPE | 2.673 |
+| Có ít nhất một vai trò nhóm chính tính được — OBSERVED_ONLY | 176 |
+| Qua ngưỡng phút 900 và vai trò 70 — PROTOTYPE | 581 |
+| Qua ngưỡng phút 900 và vai trò 70 — OBSERVED_ONLY | 39 |
+| Đủ chuỗi giá theo chính sách V3 | 2.281 |
+| Có một hợp đồng ACTIVE hợp lệ | 0 |
+| Xác minh đầy đủ chấn thương 24 tháng | 0 |
+| Cặp nhu cầu/cầu thủ có phí hoặc lương dự kiến | 0 |
+
+Chỉ tiêu vai trò xét nhóm chính, không bật chuyển vị trí, **chưa tính điều kiện tài chính/y tế**. Quote đếm theo cặp nhu cầu/cầu thủ, không cộng với số người. Cùng một cầu thủ có thể xuất hiện ở nhiều giải trong mùa.
+
+Có 26.699 ô DERIVED, 19.137 ô ESTIMATED, 6 ô OBSERVED và 142 ô MISSING trong metrics đầu vào. Thống kê cơ bản gốc được engine chuẩn hóa /90 riêng; nhãn DERIVED không có nghĩa mọi đầu vào đã được kiểm chứng ngoài thực tế. Kiểm kê đủ toàn bộ đầu vào OBSERVED_ONLY là 0, nhưng 176 người vẫn chấm được ít nhất một vai trò vì mỗi vai trò chỉ cần tập con chỉ số; hai con số đo hai điều khác nhau.
+
+### Đã kiểm chứng được gì?
+
+- Ma trận 35 vai trò, quy tắc percentile/ratio/minutes/tracking và provenance.
+- Công thức F/R và ví dụ M của báo cáo; kiểm tra tính đơn điệu và giới hạn điểm.
+- API/template/OpenAPI đồng bộ phiên bản, roleIds và tùy chọn.
+- Toàn bộ migration và bộ test cũng qua trên database PostgreSQL trống; database tạm đã được xóa.
+- HTTP đăng nhập → nhu cầu → báo giá → tính/lưu → lịch sử → shortlist; chống trùng và giới hạn chủ sở hữu.
+- Sửa nhu cầu làm tính lại theo đầu vào mới; snapshot lịch sử cũ giữ nguyên. Thiếu dữ liệu không tạo tổng hoặc lưu kết quả.
+- Audit không đổi số bản ghi nghiệp vụ/cache; test tạo fixture TEST riêng và dọn sau khi chạy.
+
+**Chưa được xác nhận:** độ đúng của xếp hạng so với nhãn tuyển trạch độc lập, độ chính xác thực của các chỉ số suy luận, khả năng chịu tải nhiều người dùng và độ đầy đủ tài chính/y tế. Kiểm thử công thức qua không biến dữ liệu ước tính thành dữ liệu thật. Đây là phần giới hạn dữ liệu/đánh giá thực nghiệm cần xử lý khi đưa vào sử dụng; không mô tả hệ thống là đã đủ dữ liệu cho mọi cầu thủ.

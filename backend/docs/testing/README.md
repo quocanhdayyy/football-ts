@@ -375,7 +375,7 @@ Nguồn mẫu là `src/config/risk-injury-demo.ts`, nằm trong mã nguồn đ�
 
 ## Xem bốn chiến lược V3 trên trang test
 
-Mở `/login`, đăng nhập rồi xem mục **Matching V3 — Giai đoạn 3** ngay dưới thông tin tài khoản. Chọn **Chiến lược chuyển nhượng** để xem trọng số lấy từ backend:
+Mở `/login`, đăng nhập rồi xem mục **Matching V3 — Giai đoạn 4** ngay dưới thông tin tài khoản. Chọn **Chiến lược chuyển nhượng** để xem trọng số lấy từ backend:
 
 | Chiến lược | F | S | R |
 | --- | ---: | ---: | ---: |
@@ -396,7 +396,7 @@ Lựa chọn chiến lược F/S/R không áp dụng cho điểm vai trò riêng
 
 ### Thử Matching V3 tổng hợp
 
-1. Mở `/login`, đăng nhập và tải lại trang nếu còn giao diện cũ. Chọn chiến lược trong **Matching V3 — Giai đoạn 3**.
+1. Mở `/login`, đăng nhập và tải lại trang nếu còn giao diện cũ. Chọn chiến lược trong **Matching V3 — Giai đoạn 4**.
 2. Mở **Tính Matching V3 — F, S, R**. Nhập ID cầu thủ (ví dụ 1700 là Haaland), ID nhu cầu CLB **đã tồn tại và thuộc tài khoản của bạn**, mùa 2025/2026. Hai ID này khác loại, không cần cùng số.
 3. Chọn vai trò đúng nhóm nhu cầu: ví dụ nhu cầu ST chọn Poacher. Giữ PROTOTYPE để cho phép các thống kê có nhãn ước tính. Chọn dung sai phí/lương theo phần trăm nếu muốn; mặc định 0 là không vượt trần.
 4. Bấm **Tính Matching V3**. Xem F/S/R, đóng góp trọng số, lý do thiếu/loại và JSON. Đổi chiến lược rồi bấm lại: F/S/R giữ nguyên khi đầu vào giữ nguyên, chỉ tổng thay đổi.
@@ -406,3 +406,20 @@ Lựa chọn chiến lược F/S/R không áp dụng cho điểm vai trò riêng
 Dữ liệu cầu thủ hiện có không đồng nghĩa đã có báo giá, lương dự kiến và xác minh chấn thương đầy đủ. Chưa đủ thì engine phải trả null và lý do; không điền số ngẫu nhiên để làm tổng hiện lên. Muốn kiểm chứng bộ công thức đầy đủ, chạy `npm run test:matching-v3-engine-api`: test dùng fixture có nhãn TEST riêng rồi tự xóa, không sửa hồ sơ cầu thủ thật. Ví dụ hồi quy trong báo cáo được kiểm tra bằng `npm run test:matching-v3-financial-risk`.
 
 Nếu chỉ muốn xem năng lực theo thống kê hiện có mà chưa chuẩn bị tài chính/y tế, dùng **Thử điểm vai trò V3** bên dưới. [Hợp đồng endpoint để bàn giao FE](../api/README.md#matching-v3).
+
+
+### Kiểm tra toàn bộ V3 trước khi bàn giao
+
+Trong backend, cần PostgreSQL đang chạy và `.env` đúng DB của bạn:
+
+```bash
+npm run test:matching-v3:all
+npm run matching:v3:audit -- --season 2025/2026
+```
+
+Lệnh test build sạch, kiểm tra OpenAPI không cũ, chạy các suite công thức/đầu vào/vai trò/hợp đồng, API V3, luồng FE, trang test và hồi quy V1 **tuần tự**. Các suite dùng fixture TEST riêng, khôi phục cấu hình active và dọn fixture sau test; không chạy nhiều suite API đồng thời vì chúng tạm kích hoạt cấu hình thử. Lệnh audit tách riêng, chỉ đọc cohort thật, không yêu cầu tài khoản Admin và không dùng fixture để lấp dữ liệu thiếu. Nó dùng DATABASE_URL local; không xuất thông tin tài khoản.
+
+Import [OpenAPI JSON](../api/matching-v3.openapi.json) vào Postman, chọn backend URL, đăng nhập bằng tài khoản đã được cấp rồi đặt Bearer token. Không có mật khẩu thật hoặc token được điền sẵn. [Thứ tự thao tác FE và các lỗi thường gặp](../api/README.md#fe-handoff).
+
+
+Xác nhận local ngày 17/11/2026: toàn bộ lệnh test đã qua trên database hiện có và trên một database PostgreSQL trống vừa chạy `prisma migrate deploy`. Database tạm được xóa sau khi thử. Kiểm tra này chứng minh migration và fixture đủ để chạy kiểm thử từ đầu; không chứng minh dữ liệu cầu thủ nguồn sẽ tự có sau khi clone, và không thay thế kiểm thử tải hoặc đối chứng tuyển trạch.

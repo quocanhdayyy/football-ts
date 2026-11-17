@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { templateV3, squadPreviewV3, rebuildRolesV3, matchingEvaluateV3, matchingRankV3, matchingSearchV3 } from "../controllers/matching-v3.controller";
+import { openApiV3, templateV3, squadPreviewV3, rebuildRolesV3, matchingEvaluateV3, matchingRankV3, matchingSearchV3 } from "../controllers/matching-v3.controller";
 import { requireAdmin } from "../middleware/auth.middleware";
 const router = Router();
+router.get("/openapi", openApiV3);
 router.get("/template", templateV3);
 router.post("/squad/preview", squadPreviewV3);
 router.post("/roles/rebuild", requireAdmin, rebuildRolesV3);

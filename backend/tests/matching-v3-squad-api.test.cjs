@@ -8,7 +8,7 @@ const C=require('../src/services/matching/v3/config.ts'),{metricsInput,metricInp
  try{
   for(const role of ['ADMIN','SCOUT'])users.push(await createUser({username:`squad_v3_${role}_${tag}`,email:`squad_v3_${role.toLowerCase()}_${tag}@example.com`,password:'FixtureV3Pass123',role}));
   const tokens=[];for(const u of users)tokens.push((await call(200,'POST','/auth/login',{email:u.email,password:'FixtureV3Pass123'})).accessToken);const [admin,scout]=tokens;
-  const template=await call(200,'GET','/matching/v3/template',undefined,scout);assert.equal(template.implementationStage,3);assert.equal(template.roleScoringAvailable,true);assert.equal(template.scoringAvailable,true);
+  const template=await call(200,'GET','/matching/v3/template',undefined,scout);assert.equal(template.implementationStage,4);assert.equal(template.roleScoringAvailable,true);assert.equal(template.scoringAvailable,true);
   const configBody=structuredClone(template.config);configBody.name='V3 squad fixture '+tag;configBody.parameters.settings.minimumReferencePlayers=1;
   const config=await call(201,'POST','/scoring-configs',configBody,admin);configs.push(config.id);
   for(let i=0;i<3;i++){

@@ -57,7 +57,11 @@
     "test:matching-v3-squad-api": "node --import tsx tests/matching-v3-squad-api.test.cjs",
     "matching:v3:roles": "node --import tsx scripts/build-v3-roles.cjs",
     "test:matching-v3-financial-risk": "node --import tsx --test tests/matching-v3-financial-risk.test.cjs",
-    "test:matching-v3-engine-api": "node --import tsx tests/matching-v3-engine-api.test.cjs"
+    "test:matching-v3-engine-api": "node --import tsx tests/matching-v3-engine-api.test.cjs",
+    "matching:v3:openapi": "node --import tsx scripts/export-matching-v3-api.cjs",
+    "matching:v3:audit": "node --import tsx scripts/audit-matching-v3.cjs",
+    "test:matching-v3-contract": "node --import tsx --test tests/matching-v3-contract.test.cjs",
+    "test:matching-v3:all": "npm run build && npm run matching:v3:openapi -- --check && node scripts/test-matching-v3.cjs"
   },
   "keywords": [],
   "author": "",

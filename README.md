@@ -5,7 +5,7 @@ Backend quản lý hồ sơ cầu thủ, nhu cầu CLB, shortlist và Matching E
 ## Bắt đầu từ đâu?
 
 - [Tài liệu backend và API](backend/docs/README.md): đầu mối cho người làm BE và FE.
-- [Công thức Matching đã thống nhất](backend/docs/matching-engine-spec.md).
+- [Báo cáo Matching V3 đã thống nhất](backend/docs/Matching_Engine_V3.docx) và [công thức đang triển khai](backend/docs/data/README.md#v3-stage-3).
 - [Phạm vi và mức đầy đủ của dữ liệu](backend/docs/data/README.md#overview).
 
 ## Git dùng chung cho BE và FE
@@ -60,4 +60,12 @@ Build tự xóa bản `dist` cũ trước khi sinh lại. Có thể xóa riêng 
 Trong `src/`, route khai báo đường dẫn API, controller kiểm tra request/quyền truy cập, service xử lý nghiệp vụ. Các phép tính và dịch vụ liên quan Matching đã gom vào `services/matching/`; các service quản lý thực thể còn lại giữ cấu trúc hiện có. Script lấy/nhập dữ liệu nằm trong `scripts/`, không trộn vào luồng request API. Tên lệnh npm được giữ để các hướng dẫn chạy hiện có tiếp tục dùng được.
 
 Các API thử riêng F/S/R dùng chung `src/controllers/preview.controller.ts` và được khai báo trong `src/routes/matching.routes.ts`. Tài liệu tra cứu chính đã gom vào ba file: API, dữ liệu và hướng dẫn test, mỗi file có mục lục riêng.
-# football-ts
+
+
+## Bàn giao Matching V3
+
+- [Thứ tự kết nối FE và payload](backend/docs/api/README.md#fe-handoff).
+- [OpenAPI JSON để import Postman](backend/docs/api/matching-v3.openapi.json).
+- Trong backend: `npm run test:matching-v3:all` kiểm tra phần mềm; `npm run matching:v3:audit` kiểm kê dữ liệu local chỉ đọc.
+
+Bốn giai đoạn kỹ thuật V3 đã có; dữ liệu ước tính vẫn được gắn nhãn. Lương/hợp đồng/chấn thương thiếu sẽ làm tổng chưa tính được, không tự thay bằng số giả. [Độ phủ và giới hạn kiểm chứng](backend/docs/data/README.md#v3-stage-4).

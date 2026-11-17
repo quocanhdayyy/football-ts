@@ -5,7 +5,7 @@ import { playerAge, shiftCalendarMonths } from "../matching-scoring.service";
 import { remainingContractMonths } from "../financial-scoring.service";
 import { writeAudit } from "../../audit-log.service";
 import type { AuditContext } from "../../audit-log.service";
-import { ENGINE_VERSION, matrixVersion, roles as catalog, positionGroup, strategies } from "./config";
+import { ENGINE_VERSION, IMPLEMENTATION_STAGE, matrixVersion, roles as catalog, positionGroup, strategies } from "./config";
 import type { RunOptions, Weights } from "./config";
 import { loadDataset, resolveConfig, asJson, ROLE_ALGORITHM } from "./squad.service";
 import { eligibility, scoreVector, record } from "./performance";
@@ -121,7 +121,7 @@ async function evaluateBatch(tx: Prisma.TransactionClient, input: MatchingInputV
       precision: { total: complete ? total : null, financial: finance.score, squad, risk: riskResult.score, fee }, criteria, missing: [...new Set(missing)], excluded,
       prosCons: { pros, cons, warnings }, saved: resultId !== null, resultId });
   }
-  return { engineVersion: ENGINE_VERSION, implementationStage: 3, requirementId: requirement.id, season: input.season, evaluatedAt: now,
+  return { engineVersion: ENGINE_VERSION, implementationStage: IMPLEMENTATION_STAGE, requirementId: requirement.id, season: input.season, evaluatedAt: now,
     config: { id: config.id, name: config.name, version: config.version, hash: config.hash, pillarWeights: weights }, options: input.options,
     reference: { datasetHash: data.datasetHash, configHash: data.configHash, count: data.reference.count }, results };
 }

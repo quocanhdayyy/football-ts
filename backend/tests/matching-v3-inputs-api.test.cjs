@@ -18,7 +18,7 @@ const {metricsInput,metricInputHash}=require('../src/services/player-metrics-inp
     const [admin,scout]=tokens;
     await call(401,'GET','/matching/v3/template');
     const template=await call(200,'GET','/matching/v3/template',undefined,scout);
-    assert.equal(template.implementationStage,3);assert.equal(template.scoringAvailable,true);assert.equal(template.roles.length,35);
+    assert.equal(template.implementationStage,4);assert.equal(template.scoringAvailable,true);assert.equal(template.roles.length,35);
     for(const path of ['rebuild'])await call(404,'POST','/matching/v3/'+path,{},admin);
     const body={...template.config,name:`Input fixture ${tag}`};
     await call(403,'POST','/scoring-configs',body,scout);

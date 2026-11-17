@@ -1,0 +1,3509 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Football Transfer — Matching V3 & FE workflow",
+    "version": "matching-v3.0.0",
+    "description": "Hợp đồng của sáu API Matching V3 và các bước kết nối FE. Không phải danh mục CRUD toàn bộ backend. Bearer token dạng opaque, không phải JWT. Điểm live là number/null; Decimal trong CRUD/lịch sử là string. Null là chưa biết, không phải 0. Chọn nguồn giá nếu có nhiều nguồn; dữ liệu thiếu vẫn HTTP 200. Bản mô tả được sinh từ mã nguồn, không chứa token hay tài khoản mẫu thật."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Đổi URL này thành backend của bạn"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Matching V3"
+    },
+    {
+      "name": "FE workflow"
+    }
+  ],
+  "paths": {
+    "/matching/v3/openapi": {
+      "get": {
+        "operationId": "matchingV3OpenApi",
+        "summary": "Hợp đồng OpenAPI JSON nguyên bản, không có envelope",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/matching/v3/template": {
+      "get": {
+        "operationId": "matchingV3Template",
+        "summary": "Đọc cấu hình, roleIds và chiến lược",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Template"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/matching/v3/squad/preview": {
+      "post": {
+        "operationId": "matchingV3SquadPreview",
+        "summary": "Thử điểm vai trò; không tạo MatchResult",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SquadRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/matching/v3/roles/rebuild": {
+      "post": {
+        "operationId": "matchingV3Rebuild",
+        "summary": "Admin xây cache vai trò; không lưu lịch sử Matching",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RebuildRequest"
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "ADMIN"
+        ]
+      }
+    },
+    "/matching/v3/evaluate": {
+      "post": {
+        "operationId": "matchingV3Evaluate",
+        "summary": "Tính một cầu thủ; save=true chỉ lưu COMPLETE",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Evaluation"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/matching/v3/rank": {
+      "post": {
+        "operationId": "matchingV3Rank",
+        "summary": "Xếp hạng 1–100 ID với tập tham chiếu cố định; không lưu",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Ranking"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RankRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/matching/v3/search": {
+      "post": {
+        "operationId": "matchingV3Search",
+        "summary": "Tự tìm cohort top 5 của mùa; không lưu",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Ranking"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "login",
+        "summary": "Đăng nhập lấy token 8 giờ",
+        "tags": [
+          "FE workflow"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "accessToken": {
+                          "type": "string"
+                        },
+                        "tokenType": {
+                          "type": "string",
+                          "enum": [
+                            "Bearer"
+                          ]
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "user": {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      },
+                      "required": [
+                        "accessToken",
+                        "tokenType",
+                        "expiresAt",
+                        "user"
+                      ],
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 100
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "me",
+        "summary": "Kiểm tra phiên hiện tại",
+        "tags": [
+          "FE workflow"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "summary": "Hủy token hiện tại",
+        "tags": [
+          "FE workflow"
+        ],
+        "responses": {
+          "204": {
+            "description": "Đăng xuất, không có body"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/clubs": {
+      "get": {
+        "operationId": "clubs",
+        "summary": "Đọc CLB để chọn trong form",
+        "tags": [
+          "FE workflow"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/club-requirements": {
+      "get": {
+        "operationId": "requirements",
+        "summary": "Đọc nhu cầu trong phạm vi tài khoản",
+        "tags": [
+          "FE workflow"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRequirement",
+        "summary": "Tạo nhu cầu; userId lấy từ token",
+        "tags": [
+          "FE workflow"
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/club-requirements/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        }
+      ],
+      "get": {
+        "operationId": "requirement",
+        "summary": "Đọc nhu cầu; Scout khác chủ trả 404",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateRequirement",
+        "summary": "Sửa nhu cầu; cần gọi Matching lại, lịch sử cũ giữ nguyên",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clubId": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 2147483647
+                  },
+                  "position": {
+                    "type": "string",
+                    "enum": [
+                      "ST",
+                      "LW",
+                      "RW",
+                      "CAM",
+                      "CDM",
+                      "CM",
+                      "CB",
+                      "RB",
+                      "LB",
+                      "GK"
+                    ]
+                  },
+                  "minAge": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "maxAge": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "budget": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+                      }
+                    ],
+                    "description": "Số tiền không âm, tối đa 13 chữ số nguyên và 2 số thập phân; cùng tiền tệ giữa các đầu vào. Decimal trả trong CRUD/lịch sử là chuỗi."
+                  },
+                  "salaryLimit": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+                      }
+                    ],
+                    "description": "Số tiền không âm, tối đa 13 chữ số nguyên và 2 số thập phân; cùng tiền tệ giữa các đầu vào. Decimal trả trong CRUD/lịch sử là chuỗi."
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/matching-inputs": {
+      "get": {
+        "operationId": "quotes",
+        "summary": "Đọc phí/lương dự kiến theo nhu cầu và cầu thủ",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "playerId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          {
+            "name": "requirementId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createQuote",
+        "summary": "Tạo báo giá theo nhu cầu; một bản ghi cho mỗi cặp",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/matching-inputs/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        }
+      ],
+      "patch": {
+        "operationId": "updateQuote",
+        "summary": "Sửa phí/lương dự kiến theo ID báo giá",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "Cần ít nhất phí hoặc lương dự kiến. Mỗi khoản có số tiền phải kèm nguồn không rỗng; bỏ khoản phải gửi cả giá trị và nguồn = null. PATCH kiểm tra trạng thái sau khi ghép với bản cũ.",
+                "minProperties": 1,
+                "type": "object",
+                "properties": {
+                  "estimatedFee": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "nullable": true
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{1,13}(\\.[0-9]{1,2})?$"
+                      }
+                    ]
+                  },
+                  "expectedSalaryPerYear": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "nullable": true
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{1,13}(\\.[0-9]{1,2})?$"
+                      }
+                    ]
+                  },
+                  "feeSource": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "nullable": true
+                  },
+                  "salarySource": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "nullable": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/match-results": {
+      "get": {
+        "operationId": "history",
+        "summary": "Lịch sử; điểm Decimal là chuỗi, dữ liệu có thể thuộc V1 hoặc V3",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "playerId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          {
+            "name": "requirementId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ]
+      }
+    },
+    "/match-results/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        }
+      ],
+      "get": {
+        "operationId": "historyDetail",
+        "summary": "Snapshot của lần tính; xem inputSnapshot.engineVersion",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/shortlists": {
+      "get": {
+        "operationId": "shortlistItems",
+        "summary": "Đọc các mục đã lưu trong phạm vi tài khoản",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      },
+      "post": {
+        "operationId": "addShortlistItem",
+        "summary": "Lưu cầu thủ khi người dùng chọn; trùng trong cùng danh sách trả 409",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "201": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortlistInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shortlists/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        }
+      ],
+      "patch": {
+        "operationId": "updateShortlistItem",
+        "summary": "Sửa ghi chú/ưu tiên/nhu cầu của mục",
+        "tags": [
+          "Matching V3"
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "requirementId": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 2147483647,
+                    "nullable": true
+                  },
+                  "note": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 255
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeShortlistItem",
+        "summary": "Xóa mục shortlist",
+        "responses": {
+          "204": {
+            "description": "Đã xóa, không có body"
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "Error400": {
+        "description": "Body/query không hợp lệ",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error401": {
+        "description": "Token thiếu, sai hoặc hết hạn",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error403": {
+        "description": "Cần quyền Admin",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error404": {
+        "description": "Không có bản ghi trong phạm vi được phép",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error409": {
+        "description": "Cấu hình/xung đột dữ liệu",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error413": {
+        "description": "Body quá lớn",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error500": {
+        "description": "Lỗi server",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "accessToken từ POST /auth/login"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "error"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "message"
+        ],
+        "additionalProperties": true
+      },
+      "Weights": {
+        "type": "object",
+        "properties": {
+          "financial": {
+            "type": "number",
+            "minimum": 0
+          },
+          "squad": {
+            "type": "number",
+            "minimum": 0
+          },
+          "risk": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "financial",
+          "squad",
+          "risk"
+        ],
+        "additionalProperties": false,
+        "description": "Tổng phải dương; backend chuẩn hóa về 1 và trả trọng số thực trong data.config.pillarWeights."
+      },
+      "Options": {
+        "type": "object",
+        "properties": {
+          "dataMode": {
+            "type": "string",
+            "enum": [
+              "PROTOTYPE",
+              "OBSERVED_ONLY"
+            ]
+          },
+          "minMinutes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minimumRoleScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "allowPositionShift": {
+            "type": "boolean"
+          },
+          "feeTolerance": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "0.2 = 20%; đúng giới hạn vẫn đủ điều kiện với điểm phí 0."
+          },
+          "wageTolerance": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "contractMinYears": {
+            "type": "number",
+            "minimum": 0
+          },
+          "contractMaxYears": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 30
+          },
+          "holdingYears": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 30
+          },
+          "minimumAge": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "maximumAge": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "preferredFoot": {
+            "type": "string",
+            "enum": [
+              "LEFT",
+              "RIGHT",
+              "BOTH",
+              null
+            ],
+            "nullable": true
+          },
+          "leagues": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "Premier League",
+                "La Liga",
+                "Bundesliga",
+                "Serie A",
+                "Ligue 1"
+              ]
+            }
+          },
+          "topN": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "additionalProperties": false,
+        "default": {
+          "dataMode": "PROTOTYPE",
+          "minMinutes": 900,
+          "minimumRoleScore": 70,
+          "allowPositionShift": false,
+          "feeTolerance": 0,
+          "wageTolerance": 0,
+          "contractMinYears": 2,
+          "contractMaxYears": 4,
+          "holdingYears": 3,
+          "minimumAge": null,
+          "maximumAge": null,
+          "preferredFoot": null,
+          "leagues": [],
+          "topN": 10
+        },
+        "description": "Tuổi chỉ lọc nếu options có minimumAge/maximumAge; không ngầm lấy minAge/maxAge của nhu cầu. contractMinYears ≤ contractMaxYears; minimumAge ≤ maximumAge. Trần điểm tại 900 phút là 65, có thể không qua minimumRoleScore mặc định 70."
+      },
+      "EvaluateRequest": {
+        "type": "object",
+        "properties": {
+          "requirementId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "season": {
+            "type": "string",
+            "pattern": "^[0-9]{4}/[0-9]{4}$",
+            "description": "Hai năm liên tiếp, mùa đã kết thúc; backend kiểm tra cả hai điều kiện.",
+            "example": "2025/2026"
+          },
+          "roleIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 35,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "NO_NONSENSE_CB",
+                "BALL_PLAYING_CB",
+                "STOPPER",
+                "COVERING_CB",
+                "DEFENSIVE_FB",
+                "ATTACKING_FB",
+                "INVERTED_FB",
+                "UNDERLAPPING_FB",
+                "WING_BACK",
+                "ANCHOR_MAN",
+                "BALL_WINNING_MID",
+                "DEEP_LYING_PM",
+                "HALF_BACK",
+                "BOX_TO_BOX",
+                "CENTRAL_PM",
+                "MEZZALA",
+                "CARRILERO",
+                "ADVANCED_PM",
+                "TREQUARTISTA",
+                "SHADOW_STRIKER",
+                "WINGER",
+                "INVERTED_WINGER",
+                "INSIDE_FORWARD",
+                "WIDE_PLAYMAKER",
+                "DEFENSIVE_WINGER",
+                "POACHER",
+                "TARGET_MAN",
+                "FALSE_NINE",
+                "DEEP_LYING_FWD",
+                "ADVANCED_FWD",
+                "PRESSING_FWD",
+                "COMPLETE_FWD",
+                "SECOND_STRIKER",
+                "TRADITIONAL_GK",
+                "SWEEPER_KEEPER"
+              ]
+            },
+            "description": "Các vai trò phải cùng nhóm vị trí nhu cầu CLB; đọc mã từ template."
+          },
+          "configId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "valuationSource": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "MONEYBALL",
+              "BALANCED",
+              "LONG_TERM",
+              "IMMEDIATE_ROLE"
+            ]
+          },
+          "pillarWeights": {
+            "$ref": "#/components/schemas/Weights"
+          },
+          "options": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "playerId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "save": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "requirementId",
+          "season",
+          "roleIds",
+          "playerId"
+        ],
+        "additionalProperties": false,
+        "not": {
+          "required": [
+            "strategy",
+            "pillarWeights"
+          ]
+        },
+        "description": "Không gửi đồng thời strategy và pillarWeights. Bỏ cả hai dùng cấu hình. Không gửi userId. Dữ liệu thiếu trả HTTP 200 với tổng null.",
+        "example": {
+          "playerId": 1700,
+          "requirementId": 42,
+          "season": "2025/2026",
+          "roleIds": [
+            "POACHER"
+          ],
+          "strategy": "BALANCED",
+          "options": {
+            "dataMode": "PROTOTYPE",
+            "feeTolerance": 0.2,
+            "wageTolerance": 0.5
+          },
+          "save": false
+        }
+      },
+      "RankRequest": {
+        "type": "object",
+        "properties": {
+          "requirementId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "season": {
+            "type": "string",
+            "pattern": "^[0-9]{4}/[0-9]{4}$",
+            "description": "Hai năm liên tiếp, mùa đã kết thúc; backend kiểm tra cả hai điều kiện.",
+            "example": "2025/2026"
+          },
+          "roleIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 35,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "NO_NONSENSE_CB",
+                "BALL_PLAYING_CB",
+                "STOPPER",
+                "COVERING_CB",
+                "DEFENSIVE_FB",
+                "ATTACKING_FB",
+                "INVERTED_FB",
+                "UNDERLAPPING_FB",
+                "WING_BACK",
+                "ANCHOR_MAN",
+                "BALL_WINNING_MID",
+                "DEEP_LYING_PM",
+                "HALF_BACK",
+                "BOX_TO_BOX",
+                "CENTRAL_PM",
+                "MEZZALA",
+                "CARRILERO",
+                "ADVANCED_PM",
+                "TREQUARTISTA",
+                "SHADOW_STRIKER",
+                "WINGER",
+                "INVERTED_WINGER",
+                "INSIDE_FORWARD",
+                "WIDE_PLAYMAKER",
+                "DEFENSIVE_WINGER",
+                "POACHER",
+                "TARGET_MAN",
+                "FALSE_NINE",
+                "DEEP_LYING_FWD",
+                "ADVANCED_FWD",
+                "PRESSING_FWD",
+                "COMPLETE_FWD",
+                "SECOND_STRIKER",
+                "TRADITIONAL_GK",
+                "SWEEPER_KEEPER"
+              ]
+            },
+            "description": "Các vai trò phải cùng nhóm vị trí nhu cầu CLB; đọc mã từ template."
+          },
+          "configId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "valuationSource": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "MONEYBALL",
+              "BALANCED",
+              "LONG_TERM",
+              "IMMEDIATE_ROLE"
+            ]
+          },
+          "pillarWeights": {
+            "$ref": "#/components/schemas/Weights"
+          },
+          "options": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "playerIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            },
+            "minItems": 1,
+            "maxItems": 100,
+            "uniqueItems": true
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        },
+        "required": [
+          "requirementId",
+          "season",
+          "roleIds",
+          "playerIds"
+        ],
+        "additionalProperties": false,
+        "not": {
+          "required": [
+            "strategy",
+            "pillarWeights"
+          ]
+        },
+        "description": "Không gửi đồng thời strategy và pillarWeights. Bỏ cả hai dùng cấu hình. Không gửi userId. Dữ liệu thiếu trả HTTP 200 với tổng null."
+      },
+      "SearchRequest": {
+        "type": "object",
+        "properties": {
+          "requirementId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "season": {
+            "type": "string",
+            "pattern": "^[0-9]{4}/[0-9]{4}$",
+            "description": "Hai năm liên tiếp, mùa đã kết thúc; backend kiểm tra cả hai điều kiện.",
+            "example": "2025/2026"
+          },
+          "roleIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 35,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "NO_NONSENSE_CB",
+                "BALL_PLAYING_CB",
+                "STOPPER",
+                "COVERING_CB",
+                "DEFENSIVE_FB",
+                "ATTACKING_FB",
+                "INVERTED_FB",
+                "UNDERLAPPING_FB",
+                "WING_BACK",
+                "ANCHOR_MAN",
+                "BALL_WINNING_MID",
+                "DEEP_LYING_PM",
+                "HALF_BACK",
+                "BOX_TO_BOX",
+                "CENTRAL_PM",
+                "MEZZALA",
+                "CARRILERO",
+                "ADVANCED_PM",
+                "TREQUARTISTA",
+                "SHADOW_STRIKER",
+                "WINGER",
+                "INVERTED_WINGER",
+                "INSIDE_FORWARD",
+                "WIDE_PLAYMAKER",
+                "DEFENSIVE_WINGER",
+                "POACHER",
+                "TARGET_MAN",
+                "FALSE_NINE",
+                "DEEP_LYING_FWD",
+                "ADVANCED_FWD",
+                "PRESSING_FWD",
+                "COMPLETE_FWD",
+                "SECOND_STRIKER",
+                "TRADITIONAL_GK",
+                "SWEEPER_KEEPER"
+              ]
+            },
+            "description": "Các vai trò phải cùng nhóm vị trí nhu cầu CLB; đọc mã từ template."
+          },
+          "configId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "valuationSource": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "MONEYBALL",
+              "BALANCED",
+              "LONG_TERM",
+              "IMMEDIATE_ROLE"
+            ]
+          },
+          "pillarWeights": {
+            "$ref": "#/components/schemas/Weights"
+          },
+          "options": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        },
+        "required": [
+          "requirementId",
+          "season",
+          "roleIds"
+        ],
+        "additionalProperties": false,
+        "not": {
+          "required": [
+            "strategy",
+            "pillarWeights"
+          ]
+        },
+        "description": "Không gửi đồng thời strategy và pillarWeights. Bỏ cả hai dùng cấu hình. Không gửi userId. Dữ liệu thiếu trả HTTP 200 với tổng null."
+      },
+      "CandidateResult": {
+        "type": "object",
+        "properties": {
+          "player": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647
+              },
+              "name": {
+                "type": "string"
+              },
+              "position": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number",
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "position",
+              "age"
+            ],
+            "additionalProperties": true
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "COMPLETE",
+              "INCOMPLETE",
+              "EXCLUDED"
+            ]
+          },
+          "totalScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "financialScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "squadScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "riskScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "precision": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "financial": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "squad": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "risk": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "fee": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 0
+              }
+            },
+            "required": [
+              "total",
+              "financial",
+              "squad",
+              "risk",
+              "fee"
+            ],
+            "additionalProperties": true
+          },
+          "criteria": {
+            "type": "object",
+            "properties": {
+              "financial": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "squad": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "risk": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "contributions": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "financial",
+              "squad",
+              "risk",
+              "contributions"
+            ],
+            "additionalProperties": true
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excluded": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prosCons": {
+            "type": "object",
+            "properties": {
+              "pros": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "pros",
+              "cons",
+              "warnings"
+            ],
+            "additionalProperties": true
+          },
+          "saved": {
+            "type": "boolean"
+          },
+          "resultId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "nullable": true
+          }
+        },
+        "required": [
+          "player",
+          "complete",
+          "status",
+          "totalScore",
+          "financialScore",
+          "squadScore",
+          "riskScore",
+          "precision",
+          "criteria",
+          "missing",
+          "excluded",
+          "prosCons",
+          "saved",
+          "resultId"
+        ],
+        "additionalProperties": true
+      },
+      "Evaluation": {
+        "type": "object",
+        "properties": {
+          "engineVersion": {
+            "type": "string",
+            "enum": [
+              "matching-v3.0.0"
+            ]
+          },
+          "implementationStage": {
+            "type": "integer",
+            "enum": [
+              4
+            ]
+          },
+          "requirementId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "season": {
+            "type": "string",
+            "pattern": "^[0-9]{4}/[0-9]{4}$",
+            "description": "Hai năm liên tiếp, mùa đã kết thúc; backend kiểm tra cả hai điều kiện.",
+            "example": "2025/2026"
+          },
+          "evaluatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647,
+                "nullable": true
+              },
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "hash": {
+                "type": "string"
+              },
+              "pillarWeights": {
+                "$ref": "#/components/schemas/Weights"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "version",
+              "hash",
+              "pillarWeights"
+            ],
+            "additionalProperties": true
+          },
+          "options": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "reference": {
+            "type": "object",
+            "properties": {
+              "datasetHash": {
+                "type": "string"
+              },
+              "configHash": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "datasetHash",
+              "configHash",
+              "count"
+            ],
+            "additionalProperties": true
+          },
+          "player": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647
+              },
+              "name": {
+                "type": "string"
+              },
+              "position": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number",
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "position",
+              "age"
+            ],
+            "additionalProperties": true
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "COMPLETE",
+              "INCOMPLETE",
+              "EXCLUDED"
+            ]
+          },
+          "totalScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "financialScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "squadScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "riskScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true
+          },
+          "precision": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "financial": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "squad": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "risk": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "nullable": true
+              },
+              "fee": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 0
+              }
+            },
+            "required": [
+              "total",
+              "financial",
+              "squad",
+              "risk",
+              "fee"
+            ],
+            "additionalProperties": true
+          },
+          "criteria": {
+            "type": "object",
+            "properties": {
+              "financial": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "squad": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "risk": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "contributions": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "financial",
+              "squad",
+              "risk",
+              "contributions"
+            ],
+            "additionalProperties": true
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excluded": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prosCons": {
+            "type": "object",
+            "properties": {
+              "pros": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "pros",
+              "cons",
+              "warnings"
+            ],
+            "additionalProperties": true
+          },
+          "saved": {
+            "type": "boolean"
+          },
+          "resultId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "nullable": true
+          }
+        },
+        "required": [
+          "engineVersion",
+          "implementationStage",
+          "requirementId",
+          "season",
+          "evaluatedAt",
+          "config",
+          "options",
+          "reference",
+          "player",
+          "complete",
+          "status",
+          "totalScore",
+          "financialScore",
+          "squadScore",
+          "riskScore",
+          "precision",
+          "criteria",
+          "missing",
+          "excluded",
+          "prosCons",
+          "saved",
+          "resultId"
+        ],
+        "additionalProperties": true
+      },
+      "Ranking": {
+        "type": "object",
+        "properties": {
+          "engineVersion": {
+            "type": "string",
+            "enum": [
+              "matching-v3.0.0"
+            ]
+          },
+          "implementationStage": {
+            "type": "integer",
+            "enum": [
+              4
+            ]
+          },
+          "requirementId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "season": {
+            "type": "string",
+            "pattern": "^[0-9]{4}/[0-9]{4}$",
+            "description": "Hai năm liên tiếp, mùa đã kết thúc; backend kiểm tra cả hai điều kiện.",
+            "example": "2025/2026"
+          },
+          "evaluatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2147483647,
+                "nullable": true
+              },
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "hash": {
+                "type": "string"
+              },
+              "pillarWeights": {
+                "$ref": "#/components/schemas/Weights"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "version",
+              "hash",
+              "pillarWeights"
+            ],
+            "additionalProperties": true
+          },
+          "options": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "reference": {
+            "type": "object",
+            "properties": {
+              "datasetHash": {
+                "type": "string"
+              },
+              "configHash": {
+                "type": "string"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "datasetHash",
+              "configHash",
+              "count"
+            ],
+            "additionalProperties": true
+          },
+          "saved": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "ranked": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/CandidateResult"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "rank": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  },
+                  "required": [
+                    "rank"
+                  ],
+                  "additionalProperties": true
+                }
+              ]
+            }
+          },
+          "incomplete": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CandidateResult"
+            }
+          },
+          "excluded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CandidateResult"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pageSize": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "topN": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "totalCandidates": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rankedCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "incompleteCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "excludedCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rankedPages": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "totalPages": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "page",
+              "pageSize",
+              "topN",
+              "totalCandidates",
+              "rankedCount",
+              "incompleteCount",
+              "excludedCount",
+              "rankedPages",
+              "totalPages"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "engineVersion",
+          "implementationStage",
+          "requirementId",
+          "season",
+          "evaluatedAt",
+          "config",
+          "options",
+          "reference",
+          "saved",
+          "ranked",
+          "incomplete",
+          "excluded",
+          "meta"
+        ],
+        "additionalProperties": true
+      },
+      "SquadRequest": {
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "season": {
+            "type": "string",
+            "pattern": "^[0-9]{4}/[0-9]{4}$",
+            "description": "Hai năm liên tiếp, mùa đã kết thúc; backend kiểm tra cả hai điều kiện.",
+            "example": "2025/2026"
+          },
+          "configId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "roleIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 35,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "NO_NONSENSE_CB",
+                "BALL_PLAYING_CB",
+                "STOPPER",
+                "COVERING_CB",
+                "DEFENSIVE_FB",
+                "ATTACKING_FB",
+                "INVERTED_FB",
+                "UNDERLAPPING_FB",
+                "WING_BACK",
+                "ANCHOR_MAN",
+                "BALL_WINNING_MID",
+                "DEEP_LYING_PM",
+                "HALF_BACK",
+                "BOX_TO_BOX",
+                "CENTRAL_PM",
+                "MEZZALA",
+                "CARRILERO",
+                "ADVANCED_PM",
+                "TREQUARTISTA",
+                "SHADOW_STRIKER",
+                "WINGER",
+                "INVERTED_WINGER",
+                "INSIDE_FORWARD",
+                "WIDE_PLAYMAKER",
+                "DEFENSIVE_WINGER",
+                "POACHER",
+                "TARGET_MAN",
+                "FALSE_NINE",
+                "DEEP_LYING_FWD",
+                "ADVANCED_FWD",
+                "PRESSING_FWD",
+                "COMPLETE_FWD",
+                "SECOND_STRIKER",
+                "TRADITIONAL_GK",
+                "SWEEPER_KEEPER"
+              ]
+            },
+            "description": "Các vai trò phải cùng nhóm vị trí nhu cầu CLB; đọc mã từ template."
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "dataMode": {
+                "type": "string",
+                "enum": [
+                  "PROTOTYPE",
+                  "OBSERVED_ONLY"
+                ]
+              },
+              "allowPositionShift": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "playerId",
+          "season"
+        ],
+        "additionalProperties": false
+      },
+      "RebuildRequest": {
+        "type": "object",
+        "properties": {
+          "season": {
+            "type": "string",
+            "pattern": "^[0-9]{4}/[0-9]{4}$",
+            "description": "Hai năm liên tiếp, mùa đã kết thúc; backend kiểm tra cả hai điều kiện.",
+            "example": "2025/2026"
+          },
+          "configId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "dataMode": {
+            "type": "string",
+            "enum": [
+              "PROTOTYPE",
+              "OBSERVED_ONLY"
+            ]
+          }
+        },
+        "required": [
+          "season"
+        ],
+        "additionalProperties": false
+      },
+      "Template": {
+        "type": "object",
+        "properties": {
+          "engineVersion": {
+            "type": "string"
+          },
+          "implementationStage": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "scoringAvailable": {
+            "type": "boolean"
+          },
+          "roleScoringAvailable": {
+            "type": "boolean"
+          },
+          "matrixVersion": {
+            "type": "string"
+          },
+          "config": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "options": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "group": {
+                  "type": "string"
+                },
+                "weights": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "description",
+                "group",
+                "weights"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "strategies": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "inputMetrics": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "policies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "engineVersion",
+          "implementationStage",
+          "scoringAvailable",
+          "roleScoringAvailable",
+          "matrixVersion",
+          "config",
+          "options",
+          "roles",
+          "strategies",
+          "inputMetrics",
+          "policies"
+        ],
+        "additionalProperties": true
+      },
+      "RequirementInput": {
+        "type": "object",
+        "properties": {
+          "clubId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "ST",
+              "LW",
+              "RW",
+              "CAM",
+              "CDM",
+              "CM",
+              "CB",
+              "RB",
+              "LB",
+              "GK"
+            ]
+          },
+          "minAge": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "maxAge": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "budget": {
+            "oneOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+              }
+            ],
+            "description": "Số tiền không âm, tối đa 13 chữ số nguyên và 2 số thập phân; cùng tiền tệ giữa các đầu vào. Decimal trả trong CRUD/lịch sử là chuỗi."
+          },
+          "salaryLimit": {
+            "oneOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+              }
+            ],
+            "description": "Số tiền không âm, tối đa 13 chữ số nguyên và 2 số thập phân; cùng tiền tệ giữa các đầu vào. Decimal trả trong CRUD/lịch sử là chuỗi."
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "clubId",
+          "position",
+          "minAge",
+          "maxAge",
+          "budget",
+          "salaryLimit",
+          "priority"
+        ],
+        "additionalProperties": false
+      },
+      "QuoteInput": {
+        "description": "Cần ít nhất phí hoặc lương dự kiến. Mỗi khoản có số tiền phải kèm nguồn không rỗng; bỏ khoản phải gửi cả giá trị và nguồn = null. PATCH kiểm tra trạng thái sau khi ghép với bản cũ.",
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "requirementId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "estimatedFee": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "nullable": true
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9]{1,13}(\\.[0-9]{1,2})?$"
+              }
+            ]
+          },
+          "expectedSalaryPerYear": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "nullable": true
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9]{1,13}(\\.[0-9]{1,2})?$"
+              }
+            ]
+          },
+          "feeSource": {
+            "type": "string",
+            "maxLength": 255,
+            "nullable": true
+          },
+          "salarySource": {
+            "type": "string",
+            "maxLength": 255,
+            "nullable": true
+          }
+        },
+        "required": [
+          "playerId",
+          "requirementId"
+        ],
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "estimatedFee",
+              "feeSource"
+            ],
+            "properties": {
+              "estimatedFee": {
+                "oneOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+                  }
+                ],
+                "description": "Số tiền không âm, tối đa 13 chữ số nguyên và 2 số thập phân; cùng tiền tệ giữa các đầu vào. Decimal trả trong CRUD/lịch sử là chuỗi."
+              },
+              "feeSource": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255
+              }
+            }
+          },
+          {
+            "required": [
+              "expectedSalaryPerYear",
+              "salarySource"
+            ],
+            "properties": {
+              "expectedSalaryPerYear": {
+                "oneOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9]+(\\.[0-9]{1,2})?$"
+                  }
+                ],
+                "description": "Số tiền không âm, tối đa 13 chữ số nguyên và 2 số thập phân; cùng tiền tệ giữa các đầu vào. Decimal trả trong CRUD/lịch sử là chuỗi."
+              },
+              "salarySource": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255
+              }
+            }
+          }
+        ]
+      },
+      "ShortlistInput": {
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "requirementId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "nullable": true
+          },
+          "shortlistId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 255,
+            "nullable": true
+          }
+        },
+        "required": [
+          "playerId"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "x-engine-version": "matching-v3.0.0",
+  "x-matrix-version": "tactical-roles-v3-b70a5cddf2e4"
+}

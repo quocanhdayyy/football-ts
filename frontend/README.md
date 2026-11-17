@@ -2,7 +2,8 @@
 
 Thư mục dành cho mã nguồn frontend của Football Transfer System. Hiện chưa khởi tạo ứng dụng FE.
 
-- [Tài liệu API và xác thực](../backend/docs/api/README.md).
+- [Luồng kết nối FE, xác thực và payload](../backend/docs/api/README.md#fe-handoff).
+- [OpenAPI JSON để import Postman](../backend/docs/api/matching-v3.openapi.json).
 - Backend local: `http://localhost:3000/api`.
 - Trang `/login` của backend là công cụ thử API hiện có.
 
