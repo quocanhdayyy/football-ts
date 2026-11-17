@@ -363,7 +363,7 @@ Thay 15 bằng admin thực tế. Bằng chứng cá nhân nằm trong `data/mai
 
 ## Đầu vào thống kê V3
 
-Bộ chuẩn bị ngày 11/11/2026, kiểm tra lại ngày 12/11/2026, gồm **2.684 cầu thủ mùa 2025/2026**, trong phạm vi 5 giải hiện có. Lưu ở bảng `player_stats_metrics`, không thay thống kê quan sát và 499 hồ sơ estimate cơ bản. Đây là đầu vào cho việc triển khai V3 sau này; engine hiện tại chưa tự dùng chúng. Chưa bổ sung hợp đồng, lương hoặc lịch sử chấn thương trong bước này.
+Bộ chuẩn bị ngày 11/11/2026, kiểm tra lại ngày 12/11/2026, gồm **2.684 cầu thủ mùa 2025/2026**, trong phạm vi 5 giải hiện có. Lưu ở bảng `player_stats_metrics`, không thay thống kê quan sát và 499 hồ sơ estimate cơ bản. Bản thử điểm vai trò V3 giai đoạn 2 đã dùng các đầu vào này; engine V1 hiện có vẫn giữ cách tính cũ. Chưa bổ sung hợp đồng, lương hoặc lịch sử chấn thương trong bước này.
 
 | Độ phủ | Số lượng |
 | --- | ---: |
@@ -420,12 +420,12 @@ Trong mục test API hiện có, chọn **Thống kê cầu thủ**, nhập **16
 
 ## Triển khai V3 — giai đoạn 1 hoàn thành
 
-Ngày 12/11/2026, phạm vi hiện tại là **cấu hình và dữ liệu đầu vào**. Chưa bật chấm điểm V3; Matching và các nút thử F/S/R hiện có vẫn dùng phiên bản cũ.
+Ngày 12/11/2026, phạm vi hiện tại là **cấu hình và dữ liệu đầu vào**. Phần lịch sử giai đoạn 1 chưa bật chấm điểm; hiện đã có bản thử vai trò ở giai đoạn 2 bên dưới. Matching tổng và các form F/S/R V1 vẫn dùng phiên bản cũ.
 
 | Giai đoạn | Phạm vi | Trạng thái |
 | --- | --- | --- |
 | 1 | Ma trận, cấu hình có phiên bản, cấu trúc và kiểm kê đầu vào | Hoàn thành |
-| 2 | Tập tham chiếu, percentile, làm mượt và điểm 35 vai trò | Chưa triển khai |
+| 2 | Tập tham chiếu, percentile, làm mượt và điểm 35 vai trò | Hoàn thành, xem phần giai đoạn 2 bên dưới |
 | 3 | F/R V3, điểm tổng, lọc và xếp hạng | Chưa triển khai |
 | 4 | Tích hợp API chấm điểm, giao diện thử, kiểm thử toàn luồng và bàn giao FE | Chưa triển khai |
 
@@ -438,13 +438,13 @@ Ngày 12/11/2026, phạm vi hiện tại là **cấu hình và dữ liệu đầ
 - Hai chế độ đã khai báo: `PROTOTYPE` cho phép ước tính có nhãn; `OBSERVED_ONLY` dành cho dữ liệu quan sát/derived. Việc thực thi chế độ khi chấm điểm thuộc giai đoạn 2.
 - `PlayerStats.positionMinutes` và `positionMinutesSource`: map phút của 10 vị trí dự án, số nguyên không âm, tổng không vượt `minutesPlayed`, bắt buộc có nguồn khi có map. Không tự biến vị trí phụ thành tỷ lệ phút.
 - `InjuryHistory.bodyRegion`: vùng cơ thể tùy chọn; chuỗi được trim, viết hoa và nối khoảng trắng bằng `_`, không tự suy từ tên chấn thương. Khi chưa biết để null.
-- Có bảng cache `role_score_snapshots` chuẩn bị cho giai đoạn 2, hiện để trống. Các cột điểm thành phần MatchResult cho phép null để chuẩn bị trường hợp trọng số bằng 0; giai đoạn 1 không ghi kết quả Matching.
+- Có bảng cache `role_score_snapshots`; lúc chốt giai đoạn 1 bảng để trống, giai đoạn 2 đã xây cache. Các cột điểm thành phần MatchResult cho phép null để chuẩn bị trường hợp trọng số bằng 0; giai đoạn 1 không ghi kết quả Matching.
 
 Một số lựa chọn kỹ thuật còn mở trong báo cáo được khai báo rõ ở `parameters.settings` và `policies`, chưa thực thi: trung bình tỷ lệ theo số lần thử; tối thiểu 10 người tham chiếu; thiếu Sprints chuyển sang Press, thiếu Dist chuyển sang PrgC; mốc giá lấy lần gần nhất trước mốc, không quá 180 ngày; độ lệch chuẩn mẫu. Không coi các lựa chọn này là mô hình đã hiệu chuẩn.
 
 ### API cấu hình và nhập trường bổ sung
 
-Sau khi đăng nhập, `GET /api/matching/v3/template` trả registry, cấu hình mẫu, hợp đồng chỉ số và `implementationStage: 1`, `scoringAvailable: false`. **Chưa có** `/v3/evaluate`, `/v3/rank`, `/v3/search` hoặc `/v3/squad/preview`.
+Sau khi đăng nhập, `GET /api/matching/v3/template` trả registry, cấu hình mẫu, hợp đồng chỉ số và `implementationStage: 1`, `scoringAvailable: false`. **Chưa có** `/v3/evaluate`, `/v3/rank`, `/v3/search`; giai đoạn 2 đã bổ sung `/v3/squad/preview`.
 
 Trang `/login` có mục **Matching V3 — Giai đoạn 1** ngay dưới nút kiểm tra phiên. Sau khi đăng nhập, trang tự tải bốn chiến lược từ API; chọn chiến lược sẽ hiển thị trọng số F/S/R tương ứng. Có nút tải lại cấu hình và lựa chọn đọc JSON trong mục thử API. Lựa chọn này chỉ để xem cấu hình, chưa ghi vào database hoặc áp dụng cho các form tính điểm cũ. Làm mới trang nếu đang mở bản UI trước đó.
 
@@ -490,3 +490,55 @@ npm run build
 ```
 
 Lệnh `matching:v3:prepare` tạo cấu hình mặc định nếu chưa có và xuất `data/v3-metrics/stage-1-readiness.json`; không ghi đè cấu hình khác, không active cấu hình, không suy luận thêm dữ liệu, không tính điểm. Mùa chưa có bản ghi sẽ báo lỗi, không xác nhận sẵn sàng và không thay báo cáo cũ. Chạy lại cùng đầu vào không tạo thêm cấu hình. Báo cáo chứa độ phủ từng chỉ số và danh sách thiếu; không đưa thông tin đăng nhập vào báo cáo. File nằm trong vùng dữ liệu được gitignore.
+
+<a id="v3-stage-2"></a>
+
+## V3 giai đoạn 2 — điểm vai trò
+
+Đã triển khai percentile cùng nhóm vị trí/mùa/phạm vi 5 giải, làm mượt tỷ lệ, điểm phút và ma trận 35 vai trò. Ngưỡng tham chiếu mặc định 450 phút, ít nhất 10 người cho từng chỉ số; không lấy danh sách ứng viên của yêu cầu làm tập tham chiếu. Thủ môn dùng nhóm và bộ chỉ số riêng; `goalsPreventedPer90` âm được giữ nguyên.
+
+```text
+P_i = 100 × (số người thấp hơn + 0,5 × số người bằng) / số người tham chiếu
+Q_role = tổng(w_i × P_i)
+S_minute = min(100, 100 × minutesPlayed / 2000)
+Score_role = min(0,2 × S_minute + 0,8 × Q_role, S_minute + 20, 100)
+```
+
+Không chiến và tỷ lệ pressing được làm mượt bằng `(successes + 30 × groupMean) / (attempts + 30)` trước percentile. Mặc định groupMean tính bằng tổng thành công/tổng lần thử. Thiếu số lần thử không được thay bằng 0. Thiếu tracking chỉ chuyển trọng số nếu chỉ số nhận đủ đầu vào và đủ mẫu tham chiếu. Các quy tắc kỹ thuật này nằm trong settings có kiểm tra, vẫn là giả định khởi đầu.
+
+Nhóm lân cận có hướng theo V3; chỉ đủ điều kiện nếu đã xác nhận >=25% phút ở nhóm đích hoặc người dùng bật `allowPositionShift`. Vị trí phụ không thay thế bằng chứng phút. Percentile dùng nhóm đích. Vector có 33 vai trò cho cầu thủ ngoài sân, 2 cho GK; `eligible` phân biệt kết quả số học với vai trò cầu thủ thực sự được xét. Hai vai trò đầu cách nhau dưới 3 điểm có cờ cảnh báo.
+
+### API và cache
+
+`POST /api/matching/v3/squad/preview`, cần token Scout/Admin:
+
+```json
+{
+  "playerId": 1700,
+  "season": "2025/2026",
+  "roleIds": ["POACHER"],
+  "options": {"dataMode": "PROTOTYPE", "allowPositionShift": false}
+}
+```
+
+`roleIds` không bắt buộc. Khi bỏ trống, trả vector và top 5 vai trò đủ điều kiện; chưa tự chọn S cho yêu cầu CLB. Khi gửi danh sách, `squadScore` là điểm cao nhất chỉ trong các vai trò được yêu cầu, với điều kiện toàn bộ danh sách đủ dữ liệu và đủ điều kiện vị trí; nếu chưa đủ giữ null. Không thay bằng vai trò khác ngoài yêu cầu. Preview chưa áp dụng min_minutes/s_min, bộ lọc phí/lương hay tính F/R.
+
+Response có tên cầu thủ, phút, `roles`, `metricsByGroup` chứa từng percentile/trọng số, counts/mean tham chiếu, lý do thiếu, `estimatedWeight`, cờ vị trí, cap và cache. `PROTOTYPE` cho phép ước tính trong cả đầu vào và tập tham chiếu, luôn có cảnh báo; `OBSERVED_ONLY` loại ước tính theo từng chỉ số. Số người tham chiếu tổng không phải số người dùng cho từng percentile: xem `referenceCount` ở mỗi chỉ số. Các giá trị số giữ đủ độ chính xác; UI mới làm tròn để hiển thị.
+
+Cấu hình mặc định đã công bố dùng được khi chưa active. Admin có thể thử cấu hình V3 riêng bằng configId; Scout chỉ dùng bản mặc định đúng template hoặc cấu hình active được phép. Full Matching vẫn bị chặn kích hoạt, `scoringAvailable=false`, còn `roleScoringAvailable=true`.
+
+Cache `RoleScoreSnapshot` gắn thống kê, chế độ, chính sách tính, ma trận thật và fingerprint dữ liệu của toàn mùa. Fingerprint kiểm tra cả JSON thực tế, không chỉ sourceHash. Sửa chỉ số, hồ sơ, nguồn hoặc tập tham chiếu sẽ làm cache cũ không hợp lệ. Cache không phải MatchResult; preview và rebuild không ghi lịch sử Matching, không sửa các quan sát gốc.
+
+Admin xây lại cache bằng `POST /api/matching/v3/roles/rebuild` với body `{"season":"2025/2026","dataMode":"PROTOTYPE"}` hoặc:
+
+```sh
+cd backend
+npm run matching:v3:roles -- --actor-id 15
+npm run test:matching-v3-performance
+npm run test:matching-v3-squad-api
+npm run test:login
+```
+
+Thay 15 bằng Admin thực tế. Ngày 17/11/2026: 2.684 cầu thủ trong phạm vi, 1.972 người đạt ngưỡng phút tham chiếu; 2.673 người tính được ít nhất một vai trò thuộc nhóm vị trí chính ở PROTOTYPE, 11 người còn thiếu. Con số này khác 2.580 hồ sơ đủ toàn bộ 18/6 chỉ số vì mỗi vai trò chỉ dùng các chỉ số có trọng số dương. Chưa chứng minh chất lượng dữ liệu đo, chưa áp dụng ngưỡng điểm hoặc điều kiện tuyển dụng/chuyển nhượng.
+
+Trên `/login`, mục **Matching V3 → Thử điểm vai trò V3** cho nhập ID cầu thủ, mùa, chế độ, vai trò và lựa chọn chuyển nhóm. Ví dụ ID Haaland 1700, Van Dijk 369, Alisson 262. Xem bảng điểm và mở chi tiết JSON để đọc percentile, ước tính và dữ liệu thiếu. Các ví dụ này là điểm thử của mô hình, không phải đánh giá chính thức. Giai đoạn 3 mới tính F/R V3 và ghép theo bốn chiến lược.

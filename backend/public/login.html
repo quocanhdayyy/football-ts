@@ -47,7 +47,7 @@
           </dl>
           <button id="refresh-button" class="secondary" type="button">Kiểm tra phiên đăng nhập</button>
           <section class="v3-strategy-tester" aria-labelledby="v3-heading">
-            <div class="v3-heading"><h3 id="v3-heading">Matching V3</h3><span class="v3-badge">Giai đoạn 1</span></div>
+            <div class="v3-heading"><h3 id="v3-heading">Matching V3</h3><span class="v3-badge">Giai đoạn 2</span></div>
             <p class="subtitle">Chọn chiến lược chuyển nhượng để xem mức ưu tiên giữa tài chính, chuyên môn và tương lai.</p>
             <label for="v3-strategy">Chiến lược chuyển nhượng</label>
             <select id="v3-strategy" aria-describedby="v3-strategy-description v3-notice" disabled>
@@ -59,9 +59,24 @@
               <div><dt>S · Chuyên môn</dt><dd id="v3-weight-squad"></dd></div>
               <div><dt>R · Rủi ro &amp; tương lai</dt><dd id="v3-weight-risk"></dd></div>
             </dl>
-            <p id="v3-notice" class="v3-notice">V3 chưa bật tính điểm. Lựa chọn này chỉ để xem trọng số, chưa lưu vào database hoặc áp dụng cho các form tính điểm phiên bản cũ bên dưới.</p>
+            <p id="v3-notice" class="v3-notice">V3 chưa bật tính điểm tổng. Lựa chọn chiến lược chỉ để xem trọng số F/S/R; phần bên dưới thử riêng điểm vai trò V3.</p>
             <button id="v3-reload-button" class="secondary" type="button">Tải lại cấu hình V3</button>
             <p id="v3-status" class="message" role="status" aria-live="polite"></p>
+            <details class="financial-tester" open>
+              <summary>Thử điểm vai trò V3</summary>
+              <p class="subtitle">Xem percentile, điểm phút và điểm vai trò. Dữ liệu ước tính được ghi rõ; chưa ghép F/R hoặc lưu lịch sử Matching.</p>
+              <form id="v3-squad-form">
+                <label for="v3-player">ID cầu thủ</label><input id="v3-player" type="number" min="1" max="2147483647" step="1" value="1700" required>
+                <label for="v3-season">Mùa đã kết thúc</label><input id="v3-season" value="2025/2026" required>
+                <label for="v3-mode">Chế độ dữ liệu</label><select id="v3-mode"><option value="PROTOTYPE">Thử nghiệm · cho phép ước tính</option><option value="OBSERVED_ONLY">Chỉ số liệu quan sát / tính từ nguồn</option></select>
+                <label for="v3-role">Vai trò muốn xem</label><select id="v3-role"><option value="">Các vai trò đủ điều kiện</option></select>
+                <label class="matching-save"><input id="v3-shift" type="checkbox">Cho phép chấm nhóm vị trí lân cận</label>
+                <button id="v3-squad-button" class="secondary" type="submit">Tính điểm vai trò V3</button>
+              </form>
+              <p id="v3-squad-status" class="message" role="status" aria-live="polite"></p>
+              <div id="v3-squad-breakdown" hidden></div>
+              <details><summary>Chi tiết percentile, trọng số và dữ liệu thiếu</summary><pre id="v3-squad-result" class="api-result" hidden></pre></details>
+            </details>
           </section>
           <section class="api-tester" aria-labelledby="api-heading">
             <h3 id="api-heading">Thử API backend</h3>

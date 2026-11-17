@@ -31,13 +31,16 @@
   const setBusy = value => {
     busy = value;
     for (const id of ['login-button', 'refresh-button', 'logout-button', 'api-test-button', 'api-endpoint', 'api-record-id',
-      ...Object.values(financialFields), ...matchingFields, ...squadFields, ...riskFields, 'v3-reload-button', 'financial-player-id', 'financial-requirement-id', 'financial-preview-button', 'financial-evaluate-button']) byId(id).disabled = value;
+      ...Object.values(financialFields), ...matchingFields, ...squadFields, ...riskFields, 'v3-reload-button', 'v3-player', 'v3-season', 'v3-mode', 'v3-role', 'v3-shift', 'v3-squad-button', 'financial-player-id', 'financial-requirement-id', 'financial-preview-button', 'financial-evaluate-button']) byId(id).disabled = value;
     byId('v3-strategy').disabled = value || !v3Strategies;
     byId('login-button').textContent = value ? 'Đang xử lý…' : 'Đăng nhập →';
   };
   const showLogin = () => {
     saveSession(null);
     clearV3Strategies();
+    byId('v3-squad-result').textContent = ''; byId('v3-squad-result').hidden = true;
+    byId('v3-squad-status').textContent = ''; byId('v3-squad-breakdown').replaceChildren(); byId('v3-squad-breakdown').hidden = true;
+    byId('v3-player').value = '1700'; byId('v3-season').value = '2025/2026'; byId('v3-mode').value = 'PROTOTYPE'; byId('v3-shift').checked = false;
     byId('login-panel').hidden = false;
     byId('account-panel').hidden = true;
     byId('password').value = '';
@@ -80,6 +83,7 @@
     byId('v3-strategy').replaceChildren(); byId('v3-strategy').value = ''; byId('v3-strategy').disabled = true;
     byId('v3-weights').hidden = true; byId('v3-strategy-description').textContent = '';
     byId('v3-status').textContent = '';
+    byId('v3-role').replaceChildren(); byId('v3-role').value = '';
     for (const key of ['financial', 'squad', 'risk']) byId('v3-weight-' + key).textContent = '';
   };
   const renderV3Strategy = () => {
@@ -111,6 +115,11 @@
           || Math.abs(w.financial + w.squad + w.risk - 1) > 1e-8;
       })) throw new Error('Cấu hình chiến lược V3 chưa hợp lệ.');
       v3Strategies = strategies;
+      const roleSelect = byId('v3-role'), emptyRole = document.createElement('option');
+      emptyRole.value = ''; emptyRole.textContent = 'Các vai trò đủ điều kiện'; roleSelect.append(emptyRole);
+      for (const role of payload.data.roles || []) {
+        const option = document.createElement('option'); option.value = role.id; option.textContent = role.name + ' · ' + role.group; roleSelect.append(option);
+      }
       for (const [key, label] of Object.entries(strategyLabels)) {
         const option = document.createElement('option'); option.value = key; option.textContent = label.name;
         byId('v3-strategy').append(option);
@@ -126,6 +135,44 @@
   byId('v3-reload-button').addEventListener('click', async () => {
     if (busy || !session) return;
     setBusy(true); try { await loadV3Strategies(); } finally { setBusy(false); }
+  });
+  byId('v3-squad-form').addEventListener('submit', async event => {
+    event.preventDefault(); if (busy) return;
+    if (!session) { showLogin(); return; }
+    const id = byId('v3-player').value.trim(), season = byId('v3-season').value.trim(), role = byId('v3-role').value;
+    if (!/^[0-9]+$/.test(id) || +id < 1 || +id > 2147483647 || !/^\d{4}\/\d{4}$/.test(season) || +season.slice(5) !== +season.slice(0, 4) + 1) {
+      byId('v3-squad-status').textContent = 'Nhập ID cầu thủ và mùa YYYY/YYYY liên tiếp hợp lệ.'; return;
+    }
+    setBusy(true); byId('v3-squad-status').textContent = 'Đang tính percentile và điểm vai trò…';
+    byId('v3-squad-breakdown').replaceChildren(); byId('v3-squad-breakdown').hidden = true; byId('v3-squad-result').hidden = true;
+    try {
+      const response = await fetch('/api/matching/v3/squad/preview', { method: 'POST', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.accessToken },
+        body: JSON.stringify({ playerId: Number(id), season, ...(role ? { roleIds: [role] } : {}), options: { dataMode: byId('v3-mode').value, allowPositionShift: byId('v3-shift').checked === true } }) });
+      const payload = await response.json();
+      if (response.status === 401) { showLogin(); message('Phiên đã hết hạn. Vui lòng đăng nhập lại.', true); return; }
+      byId('v3-squad-result').textContent = JSON.stringify(payload, null, 2); byId('v3-squad-result').hidden = false;
+      if (!response.ok) throw new Error(payload.message || 'Chưa tính được điểm vai trò.');
+      const d = payload.data, container = byId('v3-squad-breakdown'); container.hidden = false;
+      const fmt = n => n === null ? 'Chưa đủ dữ liệu' : Number(n.toFixed(2));
+      const shown = d.roles.filter(r => role ? r.roleId === role : r.eligible);
+      byId('v3-squad-status').textContent = d.player.name + ' · ' + d.player.position + ' · ' + d.minutesPlayed + ' phút · ' + d.dataMode;
+      const line = text => { const p = document.createElement('p'); p.textContent = text; container.append(p); };
+      line('Điểm phút: ' + fmt(d.minutesScore) + ' · Trần điểm: ' + fmt(d.cap) + ' · Tham chiếu: ' + d.reference.count + ' người.');
+      const table = document.createElement('table'); table.className = 'squad-table';
+      const row = (cells, heading = false) => { const tr = document.createElement('tr'); for (const text of cells) { const cell = document.createElement(heading ? 'th' : 'td'); cell.textContent = String(text); tr.append(cell); } table.append(tr); };
+      row(['Vai trò', 'Q chuyên môn', 'Điểm cuối', 'Ước tính'], true);
+      for (const r of shown) {
+        row([r.roleName, fmt(r.quality), r.eligible ? fmt(r.score) : 'Chưa đủ điều kiện vị trí', Math.round(r.estimatedWeight * 100) + '% trọng số']);
+      }
+      container.append(table);
+      if (!shown.length) line('Chưa có vai trò đủ điều kiện. Xem lý do trong JSON bên dưới.');
+      for (const r of shown.filter(r => r.missing.length)) line(r.roleName + ': thiếu ' + r.missing.map(m => m.metric + ' (' + m.reason + ')').join(', '));
+      if (d.ambiguousTopRole) line('Hai vai trò đầu cách nhau dưới 3 điểm; coi là gần tương đương.');
+      for (const warning of d.warnings) line(warning);
+      line('Cache: ' + (d.cache.hit ? 'dùng kết quả còn hợp lệ' : 'đã tính và cập nhật') + '. Chưa lưu lịch sử Matching.');
+    } catch (error) { byId('v3-squad-status').textContent = error.message || 'Không tải được điểm vai trò.'; }
+    finally { setBusy(false); }
   });
   const request = async (path, options = {}, authenticated = false) => {
     const response = await fetch('/api/auth' + path, {

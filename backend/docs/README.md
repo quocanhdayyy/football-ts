@@ -6,7 +6,7 @@
 | Xem database và quan hệ giữa các bảng | [ERD](erd.md) |
 | Hiểu công thức và quyết định Matching hiện có trong repo | [Đặc tả Matching](matching-engine-spec.md) |
 | Xem báo cáo V3 đã thống nhất | [Matching Engine V3](Matching_Engine_V3.docx) |
-| Xem tiến độ triển khai V3 và độ phủ đầu vào | [Giai đoạn 1 V3](data/README.md#v3-stage-1) |
+| Xem tiến độ triển khai V3, đầu vào và điểm vai trò | [Giai đoạn 1 V3](data/README.md#v3-stage-1) |
 | Xem phạm vi 5 giải, nguồn, nhập dữ liệu và cách ước tính | [Dữ liệu cầu thủ](data/README.md) |
 | Thử F/S/R và tìm hiểu DEMO | [Hướng dẫn thử API](testing/README.md) |
 
@@ -19,3 +19,5 @@ Trong mỗi tài liệu có mục lục để đi thẳng vào phần cần dùn
 - `archive/reports/`: JSON từng lần nhập/chuyển phạm vi, không phải số lượng database trực tiếp hôm nay.
 
 Dữ liệu DEMO không phải dữ liệu thật. Manifest cũ trong `testing/matching-demo-data.json` đã được đánh dấu xóa. Ước tính thống kê nằm riêng và Matching chưa tự sử dụng chúng.
+
+Giai đoạn 2 V3 đã có [điểm vai trò, percentile và cache](data/README.md#v3-stage-2); F/S/R V3 tổng hợp chưa bật.

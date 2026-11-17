@@ -15,6 +15,7 @@ const { createUser } = require('../src/services/user.service.ts');
   const storage = new Map();
   let requestCount = 0;
   let v3Override = null;
+  let squadOverride = null, squadRequest = null;
   const mount = () => {
     const nodes = new Map();
     const element = () => ({ children: [], value: '', textContent: '', append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; } });
@@ -35,6 +36,10 @@ const { createUser } = require('../src/services/user.service.ts');
       fetch: (url, options) => {
         requestCount++;
         if (url === '/api/matching/v3/template' && v3Override) return Promise.resolve(v3Override);
+        if (url === '/api/matching/v3/squad/preview') {
+          squadRequest = JSON.parse(options.body);
+          if (squadOverride) return Promise.resolve(squadOverride);
+        }
         return fetch(base + url, options);
       },
       Date, JSON, Error, Set,
@@ -50,7 +55,7 @@ const { createUser } = require('../src/services/user.service.ts');
     const html = await fetch(base + '/login');
     assert.equal(html.status, 200); const markup = await html.text();
     assert(markup.includes('id="api-test-button"')); assert(markup.includes('id="v3-strategy"'));
-    assert(markup.includes('V3 chưa bật tính điểm.'));
+    assert(markup.includes('V3 chưa bật tính điểm tổng.'));
     for (const asset of ['login.css', 'login.js']) assert.equal((await fetch(base + '/login-assets/' + asset)).status, 200);
     const tag = Date.now();
     for (const role of ['ADMIN', 'SCOUT']) users.push(await createUser({ username: `page_${role}_${tag}`, email: `page_${role.toLowerCase()}_${tag}@example.com`, password: 'PageTestPass123', role }));
@@ -74,6 +79,18 @@ const { createUser } = require('../src/services/user.service.ts');
     v3Override = { status:200, ok:true, json:async()=>({data:{strategies:{...Object.fromEntries(Object.entries(choices).map(([key,w])=>[key,{financial:w[0]/100,squad:w[1]/100,risk:w[2]/100}])),BALANCED:{financial:.9,squad:.5,risk:.2}}}}) };
     await node('v3-reload-button').events.click();assert.equal(node('v3-strategy').disabled,true);assert(node('v3-status').textContent.includes('chưa hợp lệ'));
     v3Override = null;await node('v3-reload-button').events.click();assert.equal(node('v3-strategy').disabled,false);
+    assert.equal(node('v3-role').children.length,36);
+    const beforeInvalidRole=requestCount;
+    node('v3-player').value='invalid';node('v3-season').value='2025/2026';
+    await node('v3-squad-form').events.submit({preventDefault(){}});assert.equal(requestCount,beforeInvalidRole);
+    node('v3-player').value='1700';node('v3-mode').value='PROTOTYPE';node('v3-role').value='POACHER';node('v3-shift').checked=false;
+    squadOverride={status:200,ok:true,json:async()=>({status:'success',data:{player:{name:'UI fixture player',position:'ST'},minutesPlayed:2000,minutesScore:100,cap:100,dataMode:'PROTOTYPE',reference:{count:10},roles:[{roleId:'POACHER',roleName:'Poacher',eligible:true,quality:80,score:84,estimatedWeight:.2,missing:[]}],warnings:['PROTOTYPE fixture warning'],ambiguousTopRole:false,cache:{hit:false}}})};
+    await node('v3-squad-form').events.submit({preventDefault(){}});
+    assert(node('v3-squad-status').textContent.includes('UI fixture player'));assert.equal(node('v3-squad-breakdown').hidden,false);
+    assert.equal(squadRequest.roleIds[0],'POACHER');assert.equal(squadRequest.options.dataMode,'PROTOTYPE');assert(!Object.hasOwn(squadRequest,'strategy'));
+    const texts=element=>[element.textContent,...(element.children||[]).flatMap(texts)];
+    assert(texts(node('v3-squad-breakdown')).includes('Poacher'));assert(texts(node('v3-squad-breakdown')).includes('84'));
+    squadOverride=null;
     await node('api-test-button').events.click();
     assert(node('api-status').textContent.includes('HTTP 200'));
     assert.equal(JSON.parse(node('api-result').textContent).status, 'success');
@@ -127,6 +144,7 @@ const { createUser } = require('../src/services/user.service.ts');
     assert.equal(node('financial-result').hidden, true); assert.equal(node('financial-result').textContent, '');
     assert.equal(node('matching-result').hidden, true); assert.equal(node('matching-result').textContent, '');
     assert.equal(node('v3-strategy').disabled,true);assert.equal(node('v3-weights').hidden,true);assert.equal(node('v3-weight-financial').textContent,'');
+    assert.equal(node('v3-squad-result').textContent,'');assert.equal(node('v3-squad-breakdown').hidden,true);
     await login(node, users[1]);
     node('api-endpoint').value = '/api/audit-logs';
     await node('api-test-button').events.click(); assert(node('api-status').textContent.includes('HTTP 403'));

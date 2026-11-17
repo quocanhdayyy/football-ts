@@ -41,7 +41,7 @@ export const activateConfig = (id: number, context: AuditContext) => prisma.$tra
   validateVersioned(target);
   const parameters = target.parameters;
   if (!SCORING_AVAILABLE && parameters && typeof parameters === "object" && !Array.isArray(parameters) && parameters.engineVersion === ENGINE_VERSION) {
-    throw new ApiError(409, "V3 hiện mới hoàn thành cấu hình và dữ liệu đầu vào; chưa được kích hoạt chấm điểm.");
+    throw new ApiError(409, "V3 hiện có bản thử điểm vai trò; chưa hoàn thành F/S/R tổng hợp để kích hoạt Matching.");
   }
   const previous = await tx.scoringConfig.findMany({ where: { isActive: true, id: { not: id } } });
   await tx.scoringConfig.updateMany({ where: { isActive: true, id: { not: id } }, data: { isActive: false } });

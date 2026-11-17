@@ -52,7 +52,10 @@
     "test:metrics": "python3 tests/v3-metrics.test.py",
     "matching:v3:prepare": "node --import tsx scripts/prepare-matching-v3.cjs",
     "test:matching-v3": "node --import tsx --test tests/matching-v3-inputs.test.cjs",
-    "test:matching-v3-inputs-api": "node --import tsx tests/matching-v3-inputs-api.test.cjs"
+    "test:matching-v3-inputs-api": "node --import tsx tests/matching-v3-inputs-api.test.cjs",
+    "test:matching-v3-performance": "node --import tsx --test tests/matching-v3-performance.test.cjs",
+    "test:matching-v3-squad-api": "node --import tsx tests/matching-v3-squad-api.test.cjs",
+    "matching:v3:roles": "node --import tsx scripts/build-v3-roles.cjs"
   },
   "keywords": [],
   "author": "",

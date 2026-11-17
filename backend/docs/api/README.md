@@ -29,11 +29,11 @@ PATCH không đổi chủ sở hữu. API danh sách của Scout chỉ trả d�
 ID cá nhân của người khác trả 404 để không tiết lộ sự tồn tại của dữ liệu.
 401 = thiếu/sai token; 403 = không có quyền; 404 = không tìm thấy bản ghi trong phạm vi được phép.
 
-API `/api/player-stats/:id` dùng **ID thống kê**, trả `playerId` và `playerName` để nhận diện cầu thủ. Thống kê quan sát giữ nguyên; `estimate` chứa ước tính cơ bản cũ và `metrics` chứa [đầu vào V3](../data/README.md#v3-metrics). Mỗi `metrics.values.<chỉ_số>` có `value`, `unit`, `status`, `basis` và căn cứ. `metrics.stale=true` khi hồ sơ/thống kê nền thay đổi; cần chạy lại bước chuẩn bị trước khi dùng. Sửa thống kê qua API xóa cả hai bộ suy luận cũ. Các công thức Matching hiện tại chưa tự sử dụng `metrics`.
+API `/api/player-stats/:id` dùng **ID thống kê**, trả `playerId` và `playerName` để nhận diện cầu thủ. Thống kê quan sát giữ nguyên; `estimate` chứa ước tính cơ bản cũ và `metrics` chứa [đầu vào V3](../data/README.md#v3-metrics). Mỗi `metrics.values.<chỉ_số>` có `value`, `unit`, `status`, `basis` và căn cứ. `metrics.stale=true` khi hồ sơ/thống kê nền thay đổi; cần chạy lại bước chuẩn bị trước khi dùng. Sửa thống kê qua API xóa cả hai bộ suy luận cũ. Engine V1 chưa dùng `metrics`; bản thử vai trò V3 dùng metrics còn hợp lệ theo chế độ dữ liệu đã chọn.
 
 API danh sách `/api/player-stats` giữ dữ liệu cơ bản và `estimate`; phần `metrics` chỉ trả trong API chi tiết để tránh tải bằng chứng của toàn bộ cầu thủ cùng lúc.
 
-V3 giai đoạn 1 bổ sung `GET /api/matching/v3/template` (cần token), trả 35 vai trò, cấu hình mẫu và hợp đồng chỉ số; `scoringAvailable=false`. Admin có thể nhập `positionMinutes` kèm `positionMinutesSource` qua CRUD thống kê, và `bodyRegion` qua `/api/injury-history`. Chỉ sửa phút theo vị trí không xóa metrics; sửa thống kê nền sẽ xóa bộ suy luận. Xem [quy tắc và ví dụ](../data/README.md#v3-stage-1). Các endpoint Matching đang có bên dưới vẫn dùng công thức cũ.
+V3 giai đoạn 1 bổ sung `GET /api/matching/v3/template` (cần token), trả 35 vai trò, cấu hình mẫu và hợp đồng chỉ số; `scoringAvailable=false`, `roleScoringAvailable=true`. Giai đoạn 2 bổ sung `POST /api/matching/v3/squad/preview` và API Admin `/api/matching/v3/roles/rebuild`; xem [hợp đồng điểm vai trò](../data/README.md#v3-stage-2). Admin có thể nhập `positionMinutes` kèm `positionMinutesSource` qua CRUD thống kê, và `bodyRegion` qua `/api/injury-history`. Chỉ sửa phút theo vị trí không xóa metrics; sửa thống kê nền sẽ xóa bộ suy luận. Xem [quy tắc và ví dụ](../data/README.md#v3-stage-1). Các endpoint Matching đang có bên dưới vẫn dùng công thức cũ.
 
 ### Admin đầu tiên
 

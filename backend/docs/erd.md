@@ -50,7 +50,7 @@ erDiagram
 | PlayerStats | player_stats | Thống kê cầu thủ/mùa |
 | PlayerStatsEstimate | player_stats_estimates | Ước tính riêng cho các chỉ số còn thiếu, phương pháp và bằng chứng; không ghi đè quan sát |
 | PlayerStatsMetrics | player_stats_metrics | Đầu vào /90 và tỷ lệ cho V3; nhãn nguồn, ước tính, checksum và căn cứ từng chỉ số |
-| RoleScoreSnapshot | role_score_snapshots | Cache kỹ thuật theo thống kê/cấu hình/dataset; giai đoạn 1 V3 chỉ tạo cấu trúc, chưa lưu điểm |
+| RoleScoreSnapshot | role_score_snapshots | Cache kỹ thuật theo thống kê/cấu hình/dataset; giai đoạn 2 V3 đã lưu cache vector vai trò, không phải lịch sử Matching |
 | InjuryHistory | injury_histories | Các đợt chấn thương |
 | User | users | Tài khoản |
 | ClubRequirement | club_requirements | Nhu cầu CLB |
@@ -100,4 +100,6 @@ Chi tiết endpoint và giới hạn xem [API các thực thể](api/README.md#e
 Ba bảng bổ sung cho Matching đã có API /market-value-history, /matching-inputs, /player-data-verifications; vị trí phụ nhập qua /players. Chi tiết ở [API các thực thể](api/README.md#entities).
 Đã có engine F/S/R, tổng điểm và xếp hạng qua /api/matching; chưa tự chọn trọng số S/R hoặc nhập dữ liệu mẫu. Bản thử F riêng vẫn không lưu MatchResult. Chưa gửi push, Scheduler, Audit cho toàn bộ master hoặc xóa mềm. Xem [Matching API](api/README.md#matching) và [test F](testing/README.md#financial-fit).
 
-V3 hiện hoàn thành [giai đoạn 1](data/README.md#v3-stage-1): registry ma trận, cấu hình và kiểm kê đầu vào. `GET /api/matching/v3/template` đọc hợp đồng cấu hình; chưa có API chấm điểm V3.
+V3 đã có [nền cấu hình và dữ liệu giai đoạn 1](data/README.md#v3-stage-1); `GET /api/matching/v3/template` đọc hợp đồng cấu hình.
+
+V3 giai đoạn 2 đã có bản thử điểm vai trò và cache theo phiên bản, xem [API và quy tắc](data/README.md#v3-stage-2). Full Matching F/S/R V3 chưa bật.

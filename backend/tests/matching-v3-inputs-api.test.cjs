@@ -18,8 +18,8 @@ const {metricsInput,metricInputHash}=require('../src/services/player-metrics-inp
     const [admin,scout]=tokens;
     await call(401,'GET','/matching/v3/template');
     const template=await call(200,'GET','/matching/v3/template',undefined,scout);
-    assert.equal(template.implementationStage,1);assert.equal(template.scoringAvailable,false);assert.equal(template.roles.length,35);
-    for(const path of ['evaluate','rank','search','rebuild','squad/preview'])await call(404,'POST','/matching/v3/'+path,{},admin);
+    assert.equal(template.implementationStage,2);assert.equal(template.scoringAvailable,false);assert.equal(template.roles.length,35);
+    for(const path of ['evaluate','rank','search','rebuild'])await call(404,'POST','/matching/v3/'+path,{},admin);
     const body={...template.config,name:`Input fixture ${tag}`};
     await call(403,'POST','/scoring-configs',body,scout);
     const bad=structuredClone(body);bad.parameters.settings.referenceMinMinutes=-1;await call(409,'POST','/scoring-configs',bad,admin);
