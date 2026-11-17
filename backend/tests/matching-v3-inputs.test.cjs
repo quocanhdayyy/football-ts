@@ -56,7 +56,7 @@ test('inventory separates estimates from observations,detects stale input,and ne
     player:{id:1,transfermarktId:1,name:'TEST',dateOfBirth:new Date('2000-01-01'),position:'CM',height:180}};
   const values=Object.fromEntries(C.inputMetrics.outfield.map(k=>[k,metric(C.percentageMetrics.has(k)?50:1,'ESTIMATED',C.percentageMetrics.has(k)?'PERCENT':'PER_90',C.ratioMetrics.has(k)?{successes:1,attempts:2}:{})]));
   row.metrics={inputHash:metricInputHash(metricsInput(row.player,row,null)),values,evidence:{leagues:['Premier League']}};
-  let report=inspectInputs([row],row.season);assert.equal(report.totals.completePrototypeInputs,1);assert.equal(report.totals.completeObservedInputs,0);assert.equal(report.scoringAvailable,false);assert.equal(report.issues.length,0);assert(!Object.hasOwn(report,'totalScore'));
+  let report=inspectInputs([row],row.season);assert.equal(report.totals.completePrototypeInputs,1);assert.equal(report.totals.completeObservedInputs,0);assert.equal(report.scoringAvailable,C.SCORING_AVAILABLE);assert.equal(report.issues.length,0);assert(!Object.hasOwn(report,'totalScore'));
   row.player.height=185;report=inspectInputs([row],row.season);assert.equal(report.totals.staleRecords,1);assert.equal(report.totals.completePrototypeInputs,0);
 });
 test('position minute validation is shared by imports and API,including missing source and over-allocation',()=>{

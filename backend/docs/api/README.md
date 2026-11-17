@@ -6,7 +6,7 @@ Chọn mục để đọc đúng phần cần dùng:
 - [API quản lý thực thể](#entities)
 - [Tính điểm và lưu kết quả Matching](#matching)
 - [Tự tìm ứng viên](#search)
-- [Cấu hình và đầu vào V3 — giai đoạn 1](../data/README.md#v3-stage-1)
+- [Matching V3 — F/S/R, xếp hạng và lịch sử](#matching-v3)
 
 ## Access
 
@@ -33,7 +33,7 @@ API `/api/player-stats/:id` dùng **ID thống kê**, trả `playerId` và `play
 
 API danh sách `/api/player-stats` giữ dữ liệu cơ bản và `estimate`; phần `metrics` chỉ trả trong API chi tiết để tránh tải bằng chứng của toàn bộ cầu thủ cùng lúc.
 
-V3 giai đoạn 1 bổ sung `GET /api/matching/v3/template` (cần token), trả 35 vai trò, cấu hình mẫu và hợp đồng chỉ số; `scoringAvailable=false`, `roleScoringAvailable=true`. Giai đoạn 2 bổ sung `POST /api/matching/v3/squad/preview` và API Admin `/api/matching/v3/roles/rebuild`; xem [hợp đồng điểm vai trò](../data/README.md#v3-stage-2). Admin có thể nhập `positionMinutes` kèm `positionMinutesSource` qua CRUD thống kê, và `bodyRegion` qua `/api/injury-history`. Chỉ sửa phút theo vị trí không xóa metrics; sửa thống kê nền sẽ xóa bộ suy luận. Xem [quy tắc và ví dụ](../data/README.md#v3-stage-1). Các endpoint Matching đang có bên dưới vẫn dùng công thức cũ.
+V3 có namespace riêng `/api/matching/v3`; template hiện trả `implementationStage:3`, `scoringAvailable:true`, `roleScoringAvailable:true`. [Hợp đồng V3](#matching-v3) bên dưới. Admin có thể nhập `positionMinutes` kèm `positionMinutesSource` qua CRUD thống kê, và `bodyRegion` qua `/api/injury-history`. Chỉ sửa phút theo vị trí không xóa metrics; sửa thống kê nền sẽ xóa bộ suy luận. Các endpoint `/api/matching/*` không có `/v3` vẫn dùng công thức V1.
 
 ### Admin đầu tiên
 
@@ -586,3 +586,53 @@ npm run test:matching-engine-api
 
 API test cần PostgreSQL cục bộ, tạo và dọn dữ liệu tạm, khôi phục cấu hình active ban đầu. Kiểm tra phân quyền, phạm vi ứng viên, dữ liệu thiếu/0 phút, đối chiếu điểm với chấm riêng, xếp hạng trước phân trang, không loại theo tuổi/phí và không lưu lịch sử.
 
+
+
+<a id="matching-v3"></a>
+
+## Matching V3 — giai đoạn 3
+
+Tất cả cần `Authorization: Bearer <accessToken>`; dùng ID cầu thủ, không dùng ID thống kê. [Công thức, chính sách thiếu dữ liệu và snapshot](../data/README.md#v3-stage-3).
+
+| Endpoint | Công dụng |
+| --- | --- |
+| GET `/api/matching/v3/template` | Cấu hình mẫu, 35 roleIds, bốn chiến lược, options mặc định |
+| POST `/api/matching/v3/squad/preview` | Điểm vai trò riêng; không cần nhu cầu CLB |
+| POST `/api/matching/v3/roles/rebuild` | Admin xây cache vai trò theo mùa |
+| POST `/api/matching/v3/evaluate` | F/S/R một cầu thủ, tùy chọn lưu lịch sử |
+| POST `/api/matching/v3/rank` | Xếp hạng danh sách 1–100 ID |
+| POST `/api/matching/v3/search` | Tự tìm ứng viên import top 5 trong mùa |
+
+Body evaluate mẫu (thay requirementId bằng nhu cầu ST thuộc quyền mình):
+
+```json
+{
+  "playerId": 1700,
+  "requirementId": 42,
+  "season": "2025/2026",
+  "roleIds": ["POACHER"],
+  "strategy": "BALANCED",
+  "options": {
+    "dataMode": "PROTOTYPE",
+    "feeTolerance": 0.2,
+    "wageTolerance": 0.5,
+    "minMinutes": 900,
+    "minimumRoleScore": 70
+  },
+  "save": false
+}
+```
+
+`season` bắt buộc là YYYY/YYYY liên tiếp đã kết thúc. `roleIds` bắt buộc, lấy mã từ template và thuộc nhóm vị trí của nhu cầu. Có thể thêm `configId`, `valuationSource`; bỏ configId dùng cấu hình V3 active nếu có, nếu không dùng mặc định đã công bố. Admin được thử cấu hình V3 riêng, Scout dùng cấu hình active hoặc bản mặc định đúng template. Lưu lịch sử cần cấu hình đã tồn tại trong DB; chuẩn bị bằng `npm run matching:v3:prepare -- --actor-id <ADMIN_ID>` nếu chưa có. Không tự kích hoạt cấu hình.
+
+Chọn `MONEYBALL`, `BALANCED`, `LONG_TERM`, `IMMEDIATE_ROLE`; hoặc bỏ strategy và gửi `pillarWeights:{"financial":30,"squad":50,"risk":20}`. Backend chuẩn hóa về tổng 1. Không gửi cả hai; bỏ cả hai dùng trọng số cấu hình. Không gửi `userId`.
+
+Các options còn lại (không gửi thì dùng mặc định): `allowPositionShift:false`, `contractMinYears:2`, `contractMaxYears:4`, `holdingYears:3`, `minimumAge:null`, `maximumAge:null`, `preferredFoot:null`, `leagues:[]`, `topN:10`. Giải nhận đúng tên Premier League, La Liga, Bundesliga, Serie A, Ligue 1. Tuổi chỉ lọc khi gửi options tương ứng. Dung sai dùng tỷ lệ: 0.2 = 20%, không phải 20.
+
+Rank dùng body chung nhưng bỏ `playerId`/`save`, thêm `playerIds:[1700,369]`, `page:1`, `pageSize:20` (tối đa 100). Search bỏ thêm `playerIds`; chỉ tìm trong cohort import của mùa. Không lọc lại tập percentile theo danh sách ID hay options giải. Rank/search không nhận save.
+
+Response có envelope `{status:"success",data:...}`. Evaluate trả `status` COMPLETE/INCOMPLETE/EXCLUDED, `player` (ID/tên/vị trí/tuổi), điểm F/S/R/tổng, `precision`, `criteria`, `missing`, `excluded`, `prosCons`, `saved`, `resultId`; kèm config/weights/options/reference hash. Thiếu dữ liệu hoặc bị loại vẫn HTTP 200, tổng null, không lưu.
+
+Rank/search trả `ranked`, `incomplete`, `excluded`, `meta`. Xếp hạng toàn bộ rồi mới giới hạn topN và phân trang. Ba danh sách phân trang độc lập cùng page/pageSize; `rankedPages` cho danh sách xếp hạng, `totalPages` cho trang xa nhất của cả ba; `rankedCount` là tổng người đủ điểm trước topN. `meta.totalCandidates` là số ứng viên được xét. Mở chi tiết từng người để giải thích thiếu/loại, không coi null là 0.
+
+`save:true` chỉ lưu COMPLETE vào MatchResult + AuditLog; đọc lại qua GET `/api/match-results/:id` theo phân quyền hiện có. Snapshot có `engineVersion`, nguồn, cấu hình và trọng số thực của lần tính. Thay dữ liệu hiện tại không sửa lịch sử cũ. Không tự thêm shortlist. Form `/login` có mục V3 riêng; form Matching cũ vẫn gọi V1.

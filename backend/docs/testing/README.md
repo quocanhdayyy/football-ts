@@ -375,7 +375,7 @@ Nguồn mẫu là `src/config/risk-injury-demo.ts`, nằm trong mã nguồn đ�
 
 ## Xem bốn chiến lược V3 trên trang test
 
-Mở `/login`, đăng nhập rồi xem mục **Matching V3 — Giai đoạn 2** ngay dưới thông tin tài khoản. Chọn **Chiến lược chuyển nhượng** để xem trọng số lấy từ backend:
+Mở `/login`, đăng nhập rồi xem mục **Matching V3 — Giai đoạn 3** ngay dưới thông tin tài khoản. Chọn **Chiến lược chuyển nhượng** để xem trọng số lấy từ backend:
 
 | Chiến lược | F | S | R |
 | --- | ---: | ---: | ---: |
@@ -384,11 +384,25 @@ Mở `/login`, đăng nhập rồi xem mục **Matching V3 — Giai đoạn 2** 
 | Đầu tư dài hạn | 20% | 30% | 50% |
 | Cần ngay vai trò | 20% | 70% | 10% |
 
-Ô chiến lược là phần xem cấu hình từ giai đoạn 1, chưa ghép hoặc lưu điểm tổng V3. Các form F/S/R bên dưới vẫn dùng phiên bản cũ. **Tải lại cấu hình V3** đọc lại API bằng phiên đăng nhập hiện tại; nếu phiên hết hạn, trang yêu cầu đăng nhập lại.
+Chọn chiến lược rồi bấm **Tính Matching V3** hoặc **Tìm và xếp hạng V3** để áp dụng trọng số. Chỉ đổi lựa chọn chưa gọi tính/lưu. Các form F/S/R cũ bên dưới vẫn dùng phiên bản V1. **Tải lại cấu hình V3** đọc lại API bằng phiên đăng nhập hiện tại; nếu phiên hết hạn, trang yêu cầu đăng nhập lại.
 
 
 ### Thử điểm vai trò V3
 
 Trong Matching V3, mở **Thử điểm vai trò V3**, nhập cầu thủ 1700 và mùa 2025/2026, giữ PROTOTYPE, bấm tính. Bảng hiển thị các vai trò đủ điều kiện, Q chuyên môn, điểm cuối và tỷ trọng đầu vào ước tính. Chọn Poacher rồi tính lại để xem riêng vai trò. Đổi OBSERVED_ONLY để xem các mục chưa đủ số liệu quan sát; không được coi null là điểm 0. Van Dijk dùng ID 369, Alisson ID 262. Mở phần chi tiết để xem P_i, mean/counts tham chiếu, trọng số và lý do thiếu.
 
-Lựa chọn chiến lược F/S/R phía trên chưa áp dụng cho điểm vai trò riêng. Đây là giai đoạn 2; chưa có điểm Matching tổng V3 hoặc lịch sử MatchResult mới. [Đặc tả triển khai và endpoint](../data/README.md#v3-stage-2).
+Lựa chọn chiến lược F/S/R không áp dụng cho điểm vai trò riêng. [Đặc tả điểm vai trò](../data/README.md#v3-stage-2).
+
+
+### Thử Matching V3 tổng hợp
+
+1. Mở `/login`, đăng nhập và tải lại trang nếu còn giao diện cũ. Chọn chiến lược trong **Matching V3 — Giai đoạn 3**.
+2. Mở **Tính Matching V3 — F, S, R**. Nhập ID cầu thủ (ví dụ 1700 là Haaland), ID nhu cầu CLB **đã tồn tại và thuộc tài khoản của bạn**, mùa 2025/2026. Hai ID này khác loại, không cần cùng số.
+3. Chọn vai trò đúng nhóm nhu cầu: ví dụ nhu cầu ST chọn Poacher. Giữ PROTOTYPE để cho phép các thống kê có nhãn ước tính. Chọn dung sai phí/lương theo phần trăm nếu muốn; mặc định 0 là không vượt trần.
+4. Bấm **Tính Matching V3**. Xem F/S/R, đóng góp trọng số, lý do thiếu/loại và JSON. Đổi chiến lược rồi bấm lại: F/S/R giữ nguyên khi đầu vào giữ nguyên, chỉ tổng thay đổi.
+5. Bấm nút tìm và xếp hạng để xét toàn bộ cohort import của mùa. API trả riêng người đủ điểm, thiếu dữ liệu và bị loại; tìm kiếm không lưu lịch sử.
+6. Chỉ bật **Lưu lịch sử nếu đủ điểm và qua bộ lọc** khi muốn lưu phép tính một cầu thủ. Đủ điểm sẽ hiện resultId; đọc lại qua API lịch sử kết quả Matching. INCOMPLETE/EXCLUDED không lưu.
+
+Dữ liệu cầu thủ hiện có không đồng nghĩa đã có báo giá, lương dự kiến và xác minh chấn thương đầy đủ. Chưa đủ thì engine phải trả null và lý do; không điền số ngẫu nhiên để làm tổng hiện lên. Muốn kiểm chứng bộ công thức đầy đủ, chạy `npm run test:matching-v3-engine-api`: test dùng fixture có nhãn TEST riêng rồi tự xóa, không sửa hồ sơ cầu thủ thật. Ví dụ hồi quy trong báo cáo được kiểm tra bằng `npm run test:matching-v3-financial-risk`.
+
+Nếu chỉ muốn xem năng lực theo thống kê hiện có mà chưa chuẩn bị tài chính/y tế, dùng **Thử điểm vai trò V3** bên dưới. [Hợp đồng endpoint để bàn giao FE](../api/README.md#matching-v3).

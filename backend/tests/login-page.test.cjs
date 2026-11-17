@@ -16,6 +16,7 @@ const { createUser } = require('../src/services/user.service.ts');
   let requestCount = 0;
   let v3Override = null;
   let squadOverride = null, squadRequest = null;
+  let matchHandler = null, matchRequest = null;
   const mount = () => {
     const nodes = new Map();
     const element = () => ({ children: [], value: '', textContent: '', append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; } });
@@ -40,6 +41,9 @@ const { createUser } = require('../src/services/user.service.ts');
           squadRequest = JSON.parse(options.body);
           if (squadOverride) return Promise.resolve(squadOverride);
         }
+        if (url === '/api/matching/v3/evaluate' || url === '/api/matching/v3/search') {
+          matchRequest = JSON.parse(options.body); if (matchHandler) return Promise.resolve(matchHandler(url, matchRequest));
+        }
         return fetch(base + url, options);
       },
       Date, JSON, Error, Set,
@@ -55,7 +59,7 @@ const { createUser } = require('../src/services/user.service.ts');
     const html = await fetch(base + '/login');
     assert.equal(html.status, 200); const markup = await html.text();
     assert(markup.includes('id="api-test-button"')); assert(markup.includes('id="v3-strategy"'));
-    assert(markup.includes('V3 chưa bật tính điểm tổng.'));
+    assert(markup.includes('bấm tính Matching V3'));
     for (const asset of ['login.css', 'login.js']) assert.equal((await fetch(base + '/login-assets/' + asset)).status, 200);
     const tag = Date.now();
     for (const role of ['ADMIN', 'SCOUT']) users.push(await createUser({ username: `page_${role}_${tag}`, email: `page_${role.toLowerCase()}_${tag}@example.com`, password: 'PageTestPass123', role }));
@@ -68,7 +72,7 @@ const { createUser } = require('../src/services/user.service.ts');
     for (const [key, weights] of Object.entries(choices)) {
       node('v3-strategy').value = key; node('v3-strategy').events.change();
       ['financial','squad','risk'].forEach((field,i) => assert.equal(node('v3-weight-' + field).textContent, weights[i] + '%'));
-      assert(node('v3-status').textContent.includes('chưa tính hoặc lưu điểm'));
+      assert(node('v3-status').textContent.includes('Bấm Tính Matching V3'));
     }
     assert.equal(requestCount, beforeSelection); // Selecting strategies makes no writes or scoring requests.
     await node('v3-reload-button').events.click(); assert.equal(node('v3-strategy').value, 'IMMEDIATE_ROLE');
@@ -91,6 +95,25 @@ const { createUser } = require('../src/services/user.service.ts');
     const texts=element=>[element.textContent,...(element.children||[]).flatMap(texts)];
     assert(texts(node('v3-squad-breakdown')).includes('Poacher'));assert(texts(node('v3-squad-breakdown')).includes('84'));
     squadOverride=null;
+    const fillV3=()=>{for(const[id,value]of Object.entries({'v3-match-player':'1700','v3-match-requirement':'42','v3-match-season':'2025/2026','v3-match-role':'POACHER','v3-match-mode':'PROTOTYPE','v3-fee-tolerance':'20','v3-wage-tolerance':'50','v3-min-minutes':'900','v3-min-score':'70','v3-value-source':''}))node(id).value=value;};
+    fillV3();
+    matchHandler=(url,body)=>{
+      const w=choices[body.strategy],weights={financial:w[0]/100,squad:w[1]/100,risk:w[2]/100};
+      const result={player:{name:'Full V3 UI fixture'},status:'COMPLETE',complete:true,totalScore:(80*w[0]+90*w[1]+70*w[2])/100,financialScore:80,squadScore:90,riskScore:70,missing:[],excluded:[],prosCons:{warnings:[]},saved:body.save===true,resultId:body.save?999:null};
+      return{status:200,ok:true,json:async()=>({status:'success',data:{...(url.endsWith('/search')?{ranked:[result],incomplete:[],excluded:[],meta:{rankedCount:1,incompleteCount:0,excludedCount:0}}:result),config:{pillarWeights:weights}}})};
+    };
+    for(const key of Object.keys(choices)){
+      node('v3-strategy').value=key;node('v3-strategy').events.change();
+      await node('v3-matching-form').events.submit({preventDefault(){}});
+      assert.equal(matchRequest.strategy,key);assert.equal(matchRequest.options.feeTolerance,.2);assert.equal(matchRequest.options.wageTolerance,.5);
+      const data=JSON.parse(node('v3-match-result').textContent).data;const w=choices[key];assert.equal(data.totalScore,(80*w[0]+90*w[1]+70*w[2])/100);
+      assert(node('v3-match-status').textContent.includes('Đã tính đủ'));
+    }
+    node('v3-match-save').checked=true;await node('v3-matching-form').events.submit({preventDefault(){}});assert(matchRequest.save);
+    await node('v3-search-button').events.click();assert(!Object.hasOwn(matchRequest,'save'));assert(!Object.hasOwn(matchRequest,'playerId'));assert(node('v3-match-status').textContent.includes('1 người đủ điều kiện'));
+    matchHandler=()=>({status:503,ok:false,json:async()=>({message:'Full V3 fixture temporarily unavailable'})});
+    await node('v3-matching-form').events.submit({preventDefault(){}});assert(node('v3-match-status').textContent.includes('temporarily unavailable'));assert.equal(node('account-panel').hidden,false);
+    matchHandler=null;node('v3-match-save').checked=false;
     await node('api-test-button').events.click();
     assert(node('api-status').textContent.includes('HTTP 200'));
     assert.equal(JSON.parse(node('api-result').textContent).status, 'success');
@@ -105,7 +128,7 @@ const { createUser } = require('../src/services/user.service.ts');
     assert(!node('matching-result').textContent.includes(saved.accessToken));
     assert.equal(node('account-panel').hidden, false);
     node('api-endpoint').value='/api/matching/v3/template'; node('api-record-id').value='';
-    await node('api-test-button').events.click();assert.equal(JSON.parse(node('api-result').textContent).data.scoringAvailable,false);
+    await node('api-test-button').events.click();assert.equal(JSON.parse(node('api-result').textContent).data.scoringAvailable,true);
     node('api-endpoint').value='/api/transfers';
     const fillFinancial = () => {
       for (const [id, value] of Object.entries({ 'financial-budget': '200000000', 'financial-fee': '180000000', 'financial-salary-limit': '30000000', 'financial-salary': '27000000', 'financial-months': '48' })) node(id).value = value;
@@ -169,6 +192,9 @@ const { createUser } = require('../src/services/user.service.ts');
     await login(node, users[1]);
     await prisma.authSession.updateMany({where:{userId:users[1].id},data:{expiresAt:new Date(0)}});
     await node('v3-reload-button').events.click();assert.equal(node('account-panel').hidden,true);assert.equal(node('v3-strategy').disabled,true);assert.equal(storage.size,0);
+    await login(node,users[1]);fillV3();
+    await prisma.authSession.updateMany({where:{userId:users[1].id},data:{expiresAt:new Date(0)}});
+    await node('v3-matching-form').events.submit({preventDefault(){}});assert.equal(node('account-panel').hidden,true);assert.equal(node('v3-match-result').textContent,'');
     console.log('PASS: V3 strategy UI reads all four server weights, selection never scores/writes, reload/error/retry/logout/expiry handled; existing GET/F/Matching testers still work (DOM simulation + real API).');
   } finally {
     await prisma.user.deleteMany({ where: { id: { in: users.map(user => user.id) } } });

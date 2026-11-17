@@ -102,4 +102,4 @@ Ba bảng bổ sung cho Matching đã có API /market-value-history, /matching-i
 
 V3 đã có [nền cấu hình và dữ liệu giai đoạn 1](data/README.md#v3-stage-1); `GET /api/matching/v3/template` đọc hợp đồng cấu hình.
 
-V3 giai đoạn 2 đã có bản thử điểm vai trò và cache theo phiên bản, xem [API và quy tắc](data/README.md#v3-stage-2). Full Matching F/S/R V3 chưa bật.
+V3 giai đoạn 2 đã có bản thử điểm vai trò và cache theo phiên bản, xem [API và quy tắc](data/README.md#v3-stage-2). Giai đoạn 3 đã có [F/S/R tổng hợp, tìm ứng viên và lưu MatchResult](data/README.md#v3-stage-3). Cache vai trò vẫn tách khỏi lịch sử kết quả.

@@ -2,7 +2,7 @@ import { prisma } from "../../../config/prisma";
 import { Prisma } from "../../../generated/prisma/client";
 import { ApiError, requireFound } from "../../../utils/api-handler";
 import { metricInputHash } from "../../player-metrics-input";
-import { ENGINE_VERSION, BUILTIN_NAME, matrixVersion, roles, builtinConfig, validateV3Config } from "./config";
+import { ENGINE_VERSION, IMPLEMENTATION_STAGE, SCORING_AVAILABLE, BUILTIN_NAME, matrixVersion, roles, builtinConfig, validateV3Config } from "./config";
 import type { V3Config, DataMode } from "./config";
 import { normalizeCandidate, buildReference, scoreVector, eligibility, record } from "./performance";
 
@@ -10,15 +10,15 @@ export const ROLE_ALGORITHM = "role-scores-v3-stage2.1";
 export const asJson = (value: unknown): Prisma.InputJsonObject => JSON.parse(JSON.stringify(value));
 export async function resolveConfig(tx: Prisma.TransactionClient, id: number | undefined, admin: boolean) {
   const item = id === undefined
-    ? await tx.scoringConfig.findFirst({ where: { name: BUILTIN_NAME, version: 1 } })
+    ? await tx.scoringConfig.findFirst({ where: { OR: [{ isActive: true }, { name: BUILTIN_NAME, version: 1 }], parameters: { path: ["engineVersion"], equals: ENGINE_VERSION } }, orderBy: { isActive: "desc" } })
     : await tx.scoringConfig.findFirst({ where: { id, ...(admin ? {} : { OR: [{ isActive: true }, { name: BUILTIN_NAME, version: 1 }] }) } });
   if (!item) { if (id === undefined) return builtinConfig(); throw new ApiError(409, "Không có cấu hình V3 được phép sử dụng."); }
   const config = validateV3Config(item);
   if (!admin && !item.isActive && config.hash !== builtinConfig().hash) throw new ApiError(409, "Cấu hình tùy chỉnh chưa được phép dùng.");
   return config;
 }
-type Dataset = { candidates: ReturnType<typeof normalizeCandidate>[]; reference: ReturnType<typeof buildReference>; configHash: string; datasetHash: string };
-async function loadDataset(tx: Prisma.TransactionClient, season: string, config: V3Config, mode: DataMode): Promise<Dataset> {
+export type Dataset = { candidates: ReturnType<typeof normalizeCandidate>[]; reference: ReturnType<typeof buildReference>; configHash: string; datasetHash: string };
+export async function loadDataset(tx: Prisma.TransactionClient, season: string, config: V3Config, mode: DataMode): Promise<Dataset> {
   // Hash actual JSON values too: a direct SQL edit cannot silently reuse an old cache.
   const fingerprint = await tx.$queryRaw<{ hash: string }[]>`
     SELECT md5(coalesce(string_agg(md5(to_jsonb(s)::text || to_jsonb(p)::text || coalesce(to_jsonb(m)::text,'null') || coalesce(to_jsonb(e)::text,'null')), '' ORDER BY s.id),'')) AS hash
@@ -59,7 +59,7 @@ export const previewSquadV3 = (input: SquadInput, admin: boolean) => prisma.$tra
   const selected = input.roleIds ? roles.filter(role => input.roleIds!.includes(role.roleId)) : [];
   const selectionComplete = selected.length > 0 && selected.length === input.roleIds!.length && selected.every(role => role.eligible && role.score !== null);
   const selectedRole = selectionComplete ? [...selected].sort((a, b) => b.score! - a.score! || a.roleId.localeCompare(b.roleId))[0]! : null;
-  return { engineVersion: ENGINE_VERSION, algorithm: ROLE_ALGORITHM, implementationStage: 2, fullMatchingAvailable: false, savedHistory: false,
+  return { engineVersion: ENGINE_VERSION, algorithm: ROLE_ALGORITHM, implementationStage: IMPLEMENTATION_STAGE, fullMatchingAvailable: SCORING_AVAILABLE, savedHistory: false,
     player: { id: candidate.row.playerId, name: candidate.row.player.name, position: candidate.row.player.position }, season: input.season,
     dataMode: input.dataMode, metricsStale: candidate.stale, config: { id: config.id, name: config.name, version: config.version },
     reference: { datasetHash: dataset.datasetHash, configHash: dataset.configHash, count: dataset.reference.count, minMinutes: config.settings.referenceMinMinutes,

@@ -55,7 +55,9 @@
     "test:matching-v3-inputs-api": "node --import tsx tests/matching-v3-inputs-api.test.cjs",
     "test:matching-v3-performance": "node --import tsx --test tests/matching-v3-performance.test.cjs",
     "test:matching-v3-squad-api": "node --import tsx tests/matching-v3-squad-api.test.cjs",
-    "matching:v3:roles": "node --import tsx scripts/build-v3-roles.cjs"
+    "matching:v3:roles": "node --import tsx scripts/build-v3-roles.cjs",
+    "test:matching-v3-financial-risk": "node --import tsx --test tests/matching-v3-financial-risk.test.cjs",
+    "test:matching-v3-engine-api": "node --import tsx tests/matching-v3-engine-api.test.cjs"
   },
   "keywords": [],
   "author": "",

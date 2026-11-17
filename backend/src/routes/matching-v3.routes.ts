@@ -1,8 +1,11 @@
 import { Router } from "express";
-import { templateV3, squadPreviewV3, rebuildRolesV3 } from "../controllers/matching-v3.controller";
+import { templateV3, squadPreviewV3, rebuildRolesV3, matchingEvaluateV3, matchingRankV3, matchingSearchV3 } from "../controllers/matching-v3.controller";
 import { requireAdmin } from "../middleware/auth.middleware";
 const router = Router();
 router.get("/template", templateV3);
 router.post("/squad/preview", squadPreviewV3);
 router.post("/roles/rebuild", requireAdmin, rebuildRolesV3);
+router.post("/evaluate", matchingEvaluateV3);
+router.post("/rank", matchingRankV3);
+router.post("/search", matchingSearchV3);
 export default router;

@@ -9,6 +9,7 @@
   const matchingFields = ['matching-player-id', 'matching-requirement-id', 'matching-season', 'matching-form-role', 'matching-config-id', 'matching-valuation-source', 'matching-save', 'matching-evaluate-button'];
   const squadFields = ['squad-player-id', 'squad-season', 'squad-position', 'squad-weight-position', 'squad-weight-age', 'squad-weight-form', 'squad-evaluate-button'];
   const riskFields = ['risk-weight-injury', 'risk-weight-resale', 'risk-player-id', 'risk-source', 'risk-evaluate-button', 'risk-age', 'risk-days', 'risk-ongoing', 'risk-prior-value', 'risk-current-value', 'risk-simulate-button', 'risk-demo-player', 'risk-demo-button'];
+  const v3MatchFields = ['v3-match-player','v3-match-requirement','v3-match-season','v3-match-role','v3-match-mode','v3-fee-tolerance','v3-wage-tolerance','v3-min-minutes','v3-min-score','v3-value-source','v3-match-shift','v3-match-save','v3-match-button','v3-search-button'];
   const strategyLabels = {
     MONEYBALL: { name: 'Tiết kiệm / Moneyball', description: 'Ưu tiên chi phí chuyển nhượng và mức lương phù hợp.' },
     BALANCED: { name: 'Cân bằng', description: 'Ưu tiên chuyên môn, kết hợp khả năng tài chính và tương lai.' },
@@ -31,13 +32,17 @@
   const setBusy = value => {
     busy = value;
     for (const id of ['login-button', 'refresh-button', 'logout-button', 'api-test-button', 'api-endpoint', 'api-record-id',
-      ...Object.values(financialFields), ...matchingFields, ...squadFields, ...riskFields, 'v3-reload-button', 'v3-player', 'v3-season', 'v3-mode', 'v3-role', 'v3-shift', 'v3-squad-button', 'financial-player-id', 'financial-requirement-id', 'financial-preview-button', 'financial-evaluate-button']) byId(id).disabled = value;
+      ...Object.values(financialFields), ...matchingFields, ...squadFields, ...riskFields, ...v3MatchFields, 'v3-reload-button', 'v3-player', 'v3-season', 'v3-mode', 'v3-role', 'v3-shift', 'v3-squad-button', 'financial-player-id', 'financial-requirement-id', 'financial-preview-button', 'financial-evaluate-button']) byId(id).disabled = value;
     byId('v3-strategy').disabled = value || !v3Strategies;
     byId('login-button').textContent = value ? 'Đang xử lý…' : 'Đăng nhập →';
   };
   const showLogin = () => {
     saveSession(null);
     clearV3Strategies();
+    byId('v3-match-result').textContent = ''; byId('v3-match-result').hidden = true;
+    byId('v3-match-status').textContent = ''; byId('v3-match-breakdown').replaceChildren(); byId('v3-match-breakdown').hidden = true;
+    byId('v3-match-requirement').value = ''; byId('v3-match-save').checked = false; byId('v3-match-shift').checked = false;
+    for (const [id, value] of Object.entries({'v3-match-player':'1700','v3-match-season':'2025/2026','v3-match-mode':'PROTOTYPE','v3-fee-tolerance':'0','v3-wage-tolerance':'0','v3-min-minutes':'900','v3-min-score':'70','v3-value-source':''})) byId(id).value = value;
     byId('v3-squad-result').textContent = ''; byId('v3-squad-result').hidden = true;
     byId('v3-squad-status').textContent = ''; byId('v3-squad-breakdown').replaceChildren(); byId('v3-squad-breakdown').hidden = true;
     byId('v3-player').value = '1700'; byId('v3-season').value = '2025/2026'; byId('v3-mode').value = 'PROTOTYPE'; byId('v3-shift').checked = false;
@@ -84,6 +89,7 @@
     byId('v3-weights').hidden = true; byId('v3-strategy-description').textContent = '';
     byId('v3-status').textContent = '';
     byId('v3-role').replaceChildren(); byId('v3-role').value = '';
+    byId('v3-match-role').replaceChildren(); byId('v3-match-role').value = '';
     for (const key of ['financial', 'squad', 'risk']) byId('v3-weight-' + key).textContent = '';
   };
   const renderV3Strategy = () => {
@@ -93,7 +99,7 @@
     byId('v3-strategy-description').textContent = weights ? strategyLabels[key].description : '';
     for (const field of ['financial', 'squad', 'risk']) byId('v3-weight-' + field).textContent = weights ? (weights[field] * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + '%' : '';
     if (weights) {
-      byId('v3-status').textContent = strategyLabels[key].name + ' · Tổng trọng số 100%. Chỉ xem cấu hình, chưa tính hoặc lưu điểm.';
+      byId('v3-status').textContent = strategyLabels[key].name + ' · Tổng trọng số 100%. Bấm Tính Matching V3 để áp dụng.';
       byId('v3-status').className = 'message success';
     }
   };
@@ -120,6 +126,8 @@
       for (const role of payload.data.roles || []) {
         const option = document.createElement('option'); option.value = role.id; option.textContent = role.name + ' · ' + role.group; roleSelect.append(option);
       }
+      const matchRoles = byId('v3-match-role'), placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = 'Chọn vai trò'; matchRoles.append(placeholder);
+      for (const role of payload.data.roles || []) { const option = document.createElement('option'); option.value = role.id; option.textContent = role.name + ' · ' + role.group; matchRoles.append(option); }
       for (const [key, label] of Object.entries(strategyLabels)) {
         const option = document.createElement('option'); option.value = key; option.textContent = label.name;
         byId('v3-strategy').append(option);
@@ -132,6 +140,45 @@
     }
   };
   byId('v3-strategy').addEventListener('change', renderV3Strategy);
+  const runV3Matching = async search => {
+    if (busy || !session) return;
+    const id = byId('v3-match-player').value.trim(), requirement = byId('v3-match-requirement').value.trim(), season = byId('v3-match-season').value.trim(), role = byId('v3-match-role').value;
+    const integer = v => /^[0-9]+$/.test(v) && +v >= 1 && +v <= 2147483647;
+    const numbers = ['v3-fee-tolerance','v3-wage-tolerance','v3-min-minutes','v3-min-score'].map(key => byId(key).value.trim());
+    if ((!search && !integer(id)) || !integer(requirement) || !/^\d{4}\/\d{4}$/.test(season) || +season.slice(5) !== +season.slice(0,4) + 1 || !role || !v3Strategies
+      || numbers.some(v => v === '' || !Number.isFinite(+v) || +v < 0) || +numbers[0] > 1000 || +numbers[1] > 1000 || !Number.isInteger(+numbers[2]) || +numbers[3] > 100) {
+      byId('v3-match-status').textContent = 'Nhập ID yêu cầu CLB, vai trò, mùa và các điều kiện hợp lệ.'; return;
+    }
+    setBusy(true); byId('v3-match-status').textContent = 'Đang tính Matching V3…';
+    byId('v3-match-breakdown').replaceChildren(); byId('v3-match-breakdown').hidden = true; byId('v3-match-result').hidden = true;
+    try {
+      const source = byId('v3-value-source').value.trim();
+      const body = { requirementId: +requirement, season, roleIds: [role], strategy: byId('v3-strategy').value,
+        options: { dataMode: byId('v3-match-mode').value, allowPositionShift: byId('v3-match-shift').checked === true, feeTolerance: +numbers[0]/100, wageTolerance: +numbers[1]/100, minMinutes: +numbers[2], minimumRoleScore: +numbers[3] },
+        ...(source ? { valuationSource: source } : {}), ...(search ? { page:1,pageSize:10 } : { playerId:+id,save:byId('v3-match-save').checked===true }) };
+      const response = await fetch('/api/matching/v3/' + (search ? 'search' : 'evaluate'), { method:'POST',cache:'no-store',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.accessToken},body:JSON.stringify(body) });
+      const payload = await response.json();
+      if (response.status===401) { showLogin();message('Phiên đã hết hạn. Vui lòng đăng nhập lại.',true);return; }
+      byId('v3-match-result').textContent = JSON.stringify(payload,null,2);byId('v3-match-result').hidden=false;
+      if (!response.ok) throw new Error(payload.message || 'Không tính được Matching V3.');
+      const d=payload.data,container=byId('v3-match-breakdown');container.hidden=false;
+      const line=text=>{const p=document.createElement('p');p.textContent=text;container.append(p)};
+      const show=r=>{
+        const fmt=n=>n===null?'Chưa đủ dữ liệu':n+'/100';
+        line(r.player.name+' · '+r.status+' · Tổng: '+fmt(r.totalScore));
+        line('F: '+fmt(r.financialScore)+' · S: '+fmt(r.squadScore)+' · R: '+fmt(r.riskScore));
+        if(r.missing.length)line('Thiếu: '+r.missing.join(', '));if(r.excluded.length)line('Bị loại: '+r.excluded.join(', '));
+        for(const warning of r.prosCons.warnings)line(warning);
+        if(r.saved)line('Đã lưu lịch sử #'+r.resultId);
+      };
+      if(search){byId('v3-match-status').textContent='Có '+d.meta.rankedCount+' người đủ điều kiện, '+d.meta.incompleteCount+' người thiếu dữ liệu, '+d.meta.excludedCount+' người bị loại.';for(const r of d.ranked)show(r);if(!d.ranked.length)for(const r of [...d.incomplete,...d.excluded].slice(0,10))show(r);line('Tìm kiếm không tự lưu lịch sử; chấm riêng và chọn Lưu lịch sử nếu muốn giữ một kết quả.');}
+      else {byId('v3-match-status').textContent=d.complete?'Đã tính đủ điểm Matching V3.':d.status==='EXCLUDED'?'Cầu thủ không qua bộ lọc.':'Chưa đủ dữ liệu để tính điểm tổng.';show(d);}
+      line('Trọng số đã dùng: F '+Math.round(d.config.pillarWeights.financial*100)+'% · S '+Math.round(d.config.pillarWeights.squad*100)+'% · R '+Math.round(d.config.pillarWeights.risk*100)+'%.');
+    } catch(error) {byId('v3-match-status').textContent=error.message||'Không tải được Matching V3.';}
+    finally {setBusy(false);}
+  };
+  byId('v3-matching-form').addEventListener('submit',async event=>{event.preventDefault();await runV3Matching(false)});
+  byId('v3-search-button').addEventListener('click',()=>runV3Matching(true));
   byId('v3-reload-button').addEventListener('click', async () => {
     if (busy || !session) return;
     setBusy(true); try { await loadV3Strategies(); } finally { setBusy(false); }

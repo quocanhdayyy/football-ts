@@ -47,7 +47,7 @@
           </dl>
           <button id="refresh-button" class="secondary" type="button">Kiểm tra phiên đăng nhập</button>
           <section class="v3-strategy-tester" aria-labelledby="v3-heading">
-            <div class="v3-heading"><h3 id="v3-heading">Matching V3</h3><span class="v3-badge">Giai đoạn 2</span></div>
+            <div class="v3-heading"><h3 id="v3-heading">Matching V3</h3><span class="v3-badge">Giai đoạn 3</span></div>
             <p class="subtitle">Chọn chiến lược chuyển nhượng để xem mức ưu tiên giữa tài chính, chuyên môn và tương lai.</p>
             <label for="v3-strategy">Chiến lược chuyển nhượng</label>
             <select id="v3-strategy" aria-describedby="v3-strategy-description v3-notice" disabled>
@@ -59,9 +59,34 @@
               <div><dt>S · Chuyên môn</dt><dd id="v3-weight-squad"></dd></div>
               <div><dt>R · Rủi ro &amp; tương lai</dt><dd id="v3-weight-risk"></dd></div>
             </dl>
-            <p id="v3-notice" class="v3-notice">V3 chưa bật tính điểm tổng. Lựa chọn chiến lược chỉ để xem trọng số F/S/R; phần bên dưới thử riêng điểm vai trò V3.</p>
+            <p id="v3-notice" class="v3-notice">Chọn chiến lược rồi bấm tính Matching V3 bên dưới để áp dụng trọng số F/S/R. Dữ liệu thiếu sẽ hiện rõ; không tự tạo điểm thay thế.</p>
             <button id="v3-reload-button" class="secondary" type="button">Tải lại cấu hình V3</button>
             <p id="v3-status" class="message" role="status" aria-live="polite"></p>
+            <details class="financial-tester" open>
+              <summary>Tính Matching V3 — F, S, R</summary>
+              <p class="subtitle">Cần ID nhu cầu CLB đã tạo; đây là ID yêu cầu, khác ID CLB và ID cầu thủ. Phí/lương lấy từ MatchingInput, hợp đồng và lịch sử chấn thương từ dữ liệu đã lưu.</p>
+              <form id="v3-matching-form">
+                <label for="v3-match-player">ID cầu thủ (chấm riêng)</label><input id="v3-match-player" type="number" min="1" max="2147483647" value="1700" required>
+                <label for="v3-match-requirement">ID yêu cầu CLB</label><input id="v3-match-requirement" type="number" min="1" max="2147483647" required>
+                <label for="v3-match-season">Mùa đã kết thúc</label><input id="v3-match-season" value="2025/2026" required>
+                <label for="v3-match-role">Vai trò CLB cần</label><select id="v3-match-role"><option value="">Chọn vai trò</option></select>
+                <label for="v3-match-mode">Chế độ dữ liệu</label><select id="v3-match-mode"><option value="PROTOTYPE">Thử nghiệm · cho phép ước tính</option><option value="OBSERVED_ONLY">Chỉ số quan sát / tính từ nguồn</option></select>
+                <details><summary>Dung sai và điều kiện tìm</summary>
+                  <label for="v3-fee-tolerance">Cho phép vượt ngân sách (%)</label><input id="v3-fee-tolerance" type="number" min="0" max="1000" step="any" value="0">
+                  <label for="v3-wage-tolerance">Cho phép vượt trần lương (%)</label><input id="v3-wage-tolerance" type="number" min="0" max="1000" step="any" value="0">
+                  <label for="v3-min-minutes">Số phút tối thiểu</label><input id="v3-min-minutes" type="number" min="0" step="1" value="900">
+                  <label for="v3-min-score">Điểm vai trò tối thiểu</label><input id="v3-min-score" type="number" min="0" max="100" value="70">
+                  <label for="v3-value-source">Nguồn định giá (nếu có nhiều nguồn)</label><input id="v3-value-source" maxlength="255">
+                  <label class="matching-save"><input id="v3-match-shift" type="checkbox">Cho phép nhóm vị trí lân cận</label>
+                </details>
+                <label class="matching-save"><input id="v3-match-save" type="checkbox">Lưu lịch sử nếu đủ điểm và qua bộ lọc</label>
+                <button id="v3-match-button" class="secondary" type="submit">Tính Matching V3</button>
+                <button id="v3-search-button" class="secondary" type="button">Tìm và xếp hạng cầu thủ</button>
+              </form>
+              <p id="v3-match-status" class="message" role="status" aria-live="polite"></p>
+              <div id="v3-match-breakdown" hidden></div>
+              <details><summary>Chi tiết phép tính và lý do thiếu / loại</summary><pre id="v3-match-result" class="api-result" hidden></pre></details>
+            </details>
             <details class="financial-tester" open>
               <summary>Thử điểm vai trò V3</summary>
               <p class="subtitle">Xem percentile, điểm phút và điểm vai trò. Dữ liệu ước tính được ghi rõ; chưa ghép F/R hoặc lưu lịch sử Matching.</p>

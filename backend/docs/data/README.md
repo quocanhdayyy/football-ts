@@ -6,6 +6,7 @@ Chọn mục để đọc đúng phần cần dùng:
 - [Nguồn thống kê bổ sung](#sources)
 - [Ước tính theo bằng chứng cá nhân](#estimation)
 - [Đầu vào thống kê V3](#v3-metrics)
+- [V3 giai đoạn 3: F/S/R và tìm ứng viên](#v3-stage-3)
 
 ## Overview
 
@@ -413,28 +414,28 @@ npm run test:estimation-api
 
 Nguồn tải được ghim checksum trong script fetch; thay đổi nội dung phải đối chiếu lại. Import có transaction, backup bảng metrics cũ và AuditLog; chạy lại cùng đầu vào trả 0 thay đổi. Cache/báo cáo trong `data/v3-metrics/` được gitignore. Sửa hồ sơ nền sẽ khiến `metrics.stale=true`; sửa thống kê qua API xóa bộ suy luận để tránh dùng giá trị cũ.
 
-Trong mục test API hiện có, chọn **Thống kê cầu thủ**, nhập **1621** để xem Haaland. JSON trả `data.metrics.values`, ví dụ `expectedGoalsPer90.value`, `progressivePassesPer90.status` và `basis`. ID cầu thủ của Haaland vẫn là **1700**. Engine và nút test S đang dùng công thức cũ; đọc được metrics chưa đồng nghĩa đã bật chấm điểm V3.
+Trong mục test API hiện có, chọn **Thống kê cầu thủ**, nhập **1621** để xem Haaland. JSON trả `data.metrics.values`, ví dụ `expectedGoalsPer90.value`, `progressivePassesPer90.status` và `basis`. ID cầu thủ của Haaland vẫn là **1700**. Form S cũ dùng V1; form **Matching V3** riêng đã dùng metrics, percentile và ma trận vai trò.
 
 
 <a id="v3-stage-1"></a>
 
 ## Triển khai V3 — giai đoạn 1 hoàn thành
 
-Ngày 12/11/2026, phạm vi hiện tại là **cấu hình và dữ liệu đầu vào**. Phần lịch sử giai đoạn 1 chưa bật chấm điểm; hiện đã có bản thử vai trò ở giai đoạn 2 bên dưới. Matching tổng và các form F/S/R V1 vẫn dùng phiên bản cũ.
+Mục này ghi lại phạm vi ngày 12/11/2026: **cấu hình và dữ liệu đầu vào**. Trạng thái hiện tại đã sang giai đoạn 3 bên dưới; các form F/S/R V1 vẫn giữ phiên bản cũ.
 
 | Giai đoạn | Phạm vi | Trạng thái |
 | --- | --- | --- |
 | 1 | Ma trận, cấu hình có phiên bản, cấu trúc và kiểm kê đầu vào | Hoàn thành |
 | 2 | Tập tham chiếu, percentile, làm mượt và điểm 35 vai trò | Hoàn thành, xem phần giai đoạn 2 bên dưới |
-| 3 | F/R V3, điểm tổng, lọc và xếp hạng | Chưa triển khai |
-| 4 | Tích hợp API chấm điểm, giao diện thử, kiểm thử toàn luồng và bàn giao FE | Chưa triển khai |
+| 3 | F/R V3, điểm tổng, lọc và xếp hạng | Hoàn thành; có API, lưu lịch sử và form test |
+| 4 | Hoàn thiện bàn giao FE, kiểm định mô hình và độ phủ dữ liệu thực | Chưa thực hiện; API và form thử cơ bản đã đưa vào giai đoạn 3 |
 
 ### Những phần đã có
 
 - Ma trận đọc đúng workbook được cung cấp: **33 vai trò ngoài sân + 2 thủ môn**, mỗi vai trò tổng trọng số 100%. Registry `src/config/matching-v3-matrix.ts` ghim SHA256; runtime không phụ thuộc Excel hay đường dẫn Downloads.
 - Khai báo **18 chỉ số ngoài sân, 6 chỉ số thủ môn**, đơn vị /90 hoặc phần trăm. `goalsPreventedPer90` được phép âm. Hai tỷ lệ không chiến và pressing phải có cả số thành công/tổng lần thử, nhất quán với giá trị tỷ lệ.
 - Cấu hình V3 và bốn chiến lược được kiểm tra qua ScoringConfig hiện có. Bản mặc định ID **54** trên máy hiện tại, **chưa active**; máy khác có ID riêng. Không thay cấu hình đang chạy.
-- API kích hoạt trả 409 đối với cấu hình V3 trong giai đoạn 1 vì chưa có bộ chấm điểm; cấu hình đang chạy được giữ nguyên.
+- Ở thời điểm giai đoạn 1, API kích hoạt V3 trả 409. Từ giai đoạn 3 Admin có thể kích hoạt cấu hình V3 hợp lệ; không tự chuyển cấu hình active.
 - Hai chế độ đã khai báo: `PROTOTYPE` cho phép ước tính có nhãn; `OBSERVED_ONLY` dành cho dữ liệu quan sát/derived. Việc thực thi chế độ khi chấm điểm thuộc giai đoạn 2.
 - `PlayerStats.positionMinutes` và `positionMinutesSource`: map phút của 10 vị trí dự án, số nguyên không âm, tổng không vượt `minutesPlayed`, bắt buộc có nguồn khi có map. Không tự biến vị trí phụ thành tỷ lệ phút.
 - `InjuryHistory.bodyRegion`: vùng cơ thể tùy chọn; chuỗi được trim, viết hoa và nối khoảng trắng bằng `_`, không tự suy từ tên chấn thương. Khi chưa biết để null.
@@ -444,7 +445,7 @@ Một số lựa chọn kỹ thuật còn mở trong báo cáo được khai bá
 
 ### API cấu hình và nhập trường bổ sung
 
-Sau khi đăng nhập, `GET /api/matching/v3/template` trả registry, cấu hình mẫu, hợp đồng chỉ số và `implementationStage: 1`, `scoringAvailable: false`. **Chưa có** `/v3/evaluate`, `/v3/rank`, `/v3/search`; giai đoạn 2 đã bổ sung `/v3/squad/preview`.
+Ở thời điểm giai đoạn 1, template trả `implementationStage: 1`, `scoringAvailable: false`. Hiện tại template trả **3 / true**; xem hợp đồng chấm điểm giai đoạn 3 bên dưới.
 
 Trang `/login` có mục **Matching V3 — Giai đoạn 1** ngay dưới nút kiểm tra phiên. Sau khi đăng nhập, trang tự tải bốn chiến lược từ API; chọn chiến lược sẽ hiển thị trọng số F/S/R tương ứng. Có nút tải lại cấu hình và lựa chọn đọc JSON trong mục thử API. Lựa chọn này chỉ để xem cấu hình, chưa ghi vào database hoặc áp dụng cho các form tính điểm cũ. Làm mới trang nếu đang mở bản UI trước đó.
 
@@ -525,7 +526,7 @@ Nhóm lân cận có hướng theo V3; chỉ đủ điều kiện nếu đã xá
 
 Response có tên cầu thủ, phút, `roles`, `metricsByGroup` chứa từng percentile/trọng số, counts/mean tham chiếu, lý do thiếu, `estimatedWeight`, cờ vị trí, cap và cache. `PROTOTYPE` cho phép ước tính trong cả đầu vào và tập tham chiếu, luôn có cảnh báo; `OBSERVED_ONLY` loại ước tính theo từng chỉ số. Số người tham chiếu tổng không phải số người dùng cho từng percentile: xem `referenceCount` ở mỗi chỉ số. Các giá trị số giữ đủ độ chính xác; UI mới làm tròn để hiển thị.
 
-Cấu hình mặc định đã công bố dùng được khi chưa active. Admin có thể thử cấu hình V3 riêng bằng configId; Scout chỉ dùng bản mặc định đúng template hoặc cấu hình active được phép. Full Matching vẫn bị chặn kích hoạt, `scoringAvailable=false`, còn `roleScoringAvailable=true`.
+Cấu hình mặc định đã công bố dùng được khi chưa active. Admin có thể thử cấu hình V3 riêng bằng configId; Scout chỉ dùng bản mặc định đúng template hoặc cấu hình active được phép. Từ giai đoạn 3, `scoringAvailable=true`, `roleScoringAvailable=true`; Admin có thể kích hoạt V3. Khi không chỉ định configId, engine ưu tiên cấu hình V3 active, nếu không có thì dùng bản mặc định đã công bố.
 
 Cache `RoleScoreSnapshot` gắn thống kê, chế độ, chính sách tính, ma trận thật và fingerprint dữ liệu của toàn mùa. Fingerprint kiểm tra cả JSON thực tế, không chỉ sourceHash. Sửa chỉ số, hồ sơ, nguồn hoặc tập tham chiếu sẽ làm cache cũ không hợp lệ. Cache không phải MatchResult; preview và rebuild không ghi lịch sử Matching, không sửa các quan sát gốc.
 
@@ -541,4 +542,85 @@ npm run test:login
 
 Thay 15 bằng Admin thực tế. Ngày 17/11/2026: 2.684 cầu thủ trong phạm vi, 1.972 người đạt ngưỡng phút tham chiếu; 2.673 người tính được ít nhất một vai trò thuộc nhóm vị trí chính ở PROTOTYPE, 11 người còn thiếu. Con số này khác 2.580 hồ sơ đủ toàn bộ 18/6 chỉ số vì mỗi vai trò chỉ dùng các chỉ số có trọng số dương. Chưa chứng minh chất lượng dữ liệu đo, chưa áp dụng ngưỡng điểm hoặc điều kiện tuyển dụng/chuyển nhượng.
 
-Trên `/login`, mục **Matching V3 → Thử điểm vai trò V3** cho nhập ID cầu thủ, mùa, chế độ, vai trò và lựa chọn chuyển nhóm. Ví dụ ID Haaland 1700, Van Dijk 369, Alisson 262. Xem bảng điểm và mở chi tiết JSON để đọc percentile, ước tính và dữ liệu thiếu. Các ví dụ này là điểm thử của mô hình, không phải đánh giá chính thức. Giai đoạn 3 mới tính F/R V3 và ghép theo bốn chiến lược.
+Trên `/login`, mục **Matching V3 → Thử điểm vai trò V3** cho nhập ID cầu thủ, mùa, chế độ, vai trò và lựa chọn chuyển nhóm. Ví dụ ID Haaland 1700, Van Dijk 369, Alisson 262. Xem bảng điểm và mở chi tiết JSON để đọc percentile, ước tính và dữ liệu thiếu. Các ví dụ này là điểm thử của mô hình, không phải đánh giá chính thức. Giai đoạn 3 bên dưới đã bổ sung F/R V3 và ghép theo bốn chiến lược.
+
+
+<a id="v3-stage-3"></a>
+
+## V3 giai đoạn 3 — F/S/R, lọc và xếp hạng
+
+Hoàn thành ngày 17/11/2026. Engine `matching-v3.0.0` có namespace riêng `/api/matching/v3`; không đổi công thức V1, không tự active cấu hình và không sinh thêm dữ liệu cầu thủ. API và form test cơ bản được làm cùng giai đoạn này để kiểm chứng toàn luồng.
+
+### Financial F
+
+Đặt u = phí dự kiến / ngân sách, v = lương năm dự kiến / trần lương năm; hai trần phải dương, cùng tiền tệ.
+
+| Thành phần | Trong trần (tỷ lệ 0–1) | Vượt trần đến 1 + dung sai τ |
+| --- | --- | --- |
+| Phí | `100 × (0,90 − 0,30 × u)` | `60 × (1 − (u − 1) / τ_fee)` |
+| Lương | `100 × (0,96 − 0,36 × v)` | `60 × (1 − (v − 1) / τ_wage)` |
+
+Phí dùng 50% ngân sách được 75; lương dùng 50% trần được 78; đúng trần đều 60. Đúng giới hạn dung sai được 0 nhưng chưa loại; cao hơn thì loại. τ = 0 không cho vượt trần. So sánh giới hạn bằng Decimal để tránh sai số tại biên.
+
+Với c là số năm hợp đồng còn lại với CLB cũ: `d = max(c_min − c, 0, c − c_max)`, `F_contract = max(0, 100 − 30d)`. Khoảng ưu tiên mặc định 2–4 năm theo báo cáo; c = 0 → 40, c = 1 → 70, c = 2–4 → 100, c = 5 → 70.
+
+`F = 45% phí + 35% lương + 20% hợp đồng`. Phí/lương lấy MatchingInput của đúng cầu thủ và nhu cầu CLB. Không lấy lương hợp đồng hiện tại thay lương yêu cầu. Chỉ PROTOTYPE mới được ước tính phí = giá trị thị trường × 1,15 khi cấu hình cho phép; kết quả nêu nguồn, ngày và nhãn ước tính. Báo giá MatchingInput là dữ liệu người dùng cung cấp, không tự được chứng nhận là dữ liệu quan sát. OBSERVED_ONLY loại đầu vào thống kê ước tính và không dùng fallback phí/chấn thương.
+
+Thời hạn lấy hợp đồng ACTIVE có hiệu lực tại ngày tính; nhiều hợp đồng chồng lấn làm thời hạn chưa biết. Cầu thủ tự do phải được xác minh đúng ngày tính và không có hợp đồng ACTIVE; khi đó thời hạn 0 và phí 0 nếu không có báo giá.
+
+### Risk & Future R
+
+Ngày tính lấy lịch Việt Nam. Cửa sổ chấn thương 24 tháng: 12 tháng gần nhất hệ số 1, 12 tháng trước hệ số 0,6. Gộp khoảng nghỉ chồng lấn, chỉ đếm ngày đã qua, không đếm tương lai.
+
+- `D_w = min(180, ngày gần + 0,6 × ngày cũ)`.
+- Phạt tái phát: `min(24, 8 × tổng số đợt lặp lại theo vùng cơ thể)`.
+- Phạt nặng: `min(20, 10 × số đợt kéo dài ít nhất 90 ngày đã qua)`.
+- `R_injury = max(0, 100 × (1 − D_w/180) − phạt tái phát − phạt nặng)`.
+
+Chính sách triển khai: các bản ghi cùng vùng cơ thể chồng lấn hoặc tiếp nối được gộp thành một đợt khi tính phạt; vẫn giữ bản ghi gốc trong snapshot. Cần xác minh bao phủ đủ 24 tháng và vùng cơ thể của các đợt liên quan. Không có bản ghi không có nghĩa khỏe mạnh. Mặc định thiếu thì null; điểm tạm 70 chỉ dùng khi cấu hình chủ động bật và chế độ PROTOTYPE.
+
+Điểm tuổi bán lại dùng tuổi hiện tại + thời gian giữ H (mặc định 3 năm): ≤26 → 100; 29 → 70; 32 → 30; ≥35 → 0; nội suy tuyến tính giữa các mốc.
+
+Giá phải dương, cùng nguồn, không dùng bản ghi tương lai; ít nhất 4 ngày định giá khác nhau trong 24 tháng. g là hệ số hồi quy log(giá) theo thời gian thực tính bằng năm. Năm mốc −24/−18/−12/−6/0 tháng lấy giá gần nhất **tại hoặc trước mốc**, cũ tối đa 180 ngày (cấu hình được); không lấy giá tương lai hay tự nội suy thành quan sát. σ là độ lệch chuẩn mẫu của bốn log-return liên tiếp; cấu hình có thể chọn tổng thể.
+
+```text
+T = 50 + 50 × clamp(g/0,30, −1, 1)
+V = 100 × (1 − min(σ/0,35, 1))
+R_price = 60% T + 40% V
+R_resale = 60% điểm tuổi bán lại + 40% R_price
+R = 50% R_injury + 50% R_resale
+```
+
+Có nhiều nguồn giá thì phải chọn `valuationSource`; không trộn chuỗi. `criteria.risk.resale.price` trả quan sát, reliability và mốc carry-forward để kiểm tra. Reliability không tự đổi thành hệ số phạt; nguồn chưa xác minh vẫn cần được người dùng đánh giá. Thiếu chuỗi không giả định g = 0 hay σ = 0.
+
+### Ghép điểm, bộ lọc và lịch sử
+
+`Total = wF × F + wS × S + wR × R`. S là điểm tốt nhất trong các vai trò **được yêu cầu và đủ điều kiện**, không chọn vai trò khác ngoài yêu cầu. Các roleIds phải cùng nhóm vị trí nhu cầu CLB. Thiếu điểm của một vai trò yêu cầu đủ điều kiện thì S chưa biết.
+
+Dùng bốn chiến lược của template hoặc `pillarWeights` tùy chỉnh; tổng dương được chuẩn hóa và trả lại trong response. Không gửi cả hai. Đổi chiến lược không đổi F/S/R khi các đầu vào khác giữ nguyên.
+
+Bộ lọc gồm dung sai phí/lương, nhóm vị trí, phút tối thiểu (900), điểm vai trò tối thiểu (70); tuổi/chân thuận/giải là tùy chọn. **Tuổi chỉ lọc theo options.minimumAge/maximumAge gửi lên; không ngầm áp dụng minAge/maxAge cũ trong nhu cầu CLB.** 900 phút vẫn bị trần vai trò 65, nên không qua mức 70 mặc định; API không tự sửa quy tắc này. Thiếu phí/lương vẫn chưa thể xác nhận qua bộ lọc dù trọng số F bằng 0.
+
+- COMPLETE: đủ dữ liệu có trọng số và qua bộ lọc; có điểm tổng.
+- INCOMPLETE: còn thiếu dữ liệu; tổng null, kèm `missing`.
+- EXCLUDED: có điều kiện loại đã xác định; tổng null, kèm `excluded`, vẫn giữ lý do thiếu nếu có.
+
+Không thay null bằng 0 hoặc tự chia lại trọng số. Trụ có trọng số 0 có thể giữ null và lưu nguyên null. Điểm thành phần/tổng trình bày làm tròn 2 chữ số; `precision` và tiêu chí giữ số chưa làm tròn. Xếp hạng theo tổng giảm, S giảm, F giảm, phí tăng, ID tăng. Pros/Cons hiện dùng mốc mô tả 70 và đóng góp điểm; đây là quy tắc giải thích của mô hình, chưa phải kết luận tuyển trạch đã kiểm định.
+
+Search đọc toàn bộ cầu thủ import trong phạm vi top 5 của mùa; tập tham chiếu không đổi theo danh sách ứng viên. Rank nhận tối đa 100 ID. Cả hai không tự lưu MatchResult. Chỉ evaluate với `save:true` và COMPLETE mới lưu một kết quả cùng snapshot đầu vào, nguồn, công thức, ma trận, cấu hình, tùy chọn, trọng số thực, hash dataset và AuditLog. Không tự thêm shortlist. Cấu hình đã được dùng trong lịch sử không được sửa để đổi ý nghĩa kết quả cũ.
+
+Cần token. Scout chỉ dùng nhu cầu của mình, Admin được mọi nhu cầu. Thiếu dữ liệu vẫn HTTP 200 với trạng thái trên; sai body 400, thiếu token 401, ngoài phạm vi 404, cấu hình không dùng được 409.
+
+### Kiểm chứng
+
+Ví dụ M trong báo cáo cho F = 74,102; S = 81,408; R = 80,233333…; BALANCED = **78,98**. Các test API tạo dữ liệu riêng có nhãn TEST, kiểm tra bốn chiến lược, biên dung sai, phân quyền, rank/search và snapshot rồi dọn dữ liệu. Không dùng fixture để lấp thiếu trong dữ liệu thật.
+
+```bash
+npm run build
+npm run test:matching-v3-financial-risk
+npm run test:matching-v3-engine-api
+npm run test:login
+```
+
+
+Kiểm tra trên dữ liệu local ngày 17/11/2026: 2.684 cầu thủ, 96 CLB, 2.684 bộ thống kê và metrics; chưa có MatchingInput, hợp đồng, lịch sử/xác minh chấn thương. Search nhu cầu ST với điều kiện mặc định xét 2.684 người: 51 INCOMPLETE, 2.633 EXCLUDED, 0 COMPLETE. Haaland S = 93,13; thiếu lương, thời hạn hợp đồng và xác minh y tế nên tổng null. Search + evaluate trong lần smoke test khoảng 0,9 giây; đây là phép đo local đơn lẻ, chưa phải kiểm thử tải. Nhu cầu/tài khoản thử được xóa và số bản ghi dữ liệu gốc/lịch sử trước sau giữ nguyên.
