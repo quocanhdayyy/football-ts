@@ -4,7 +4,7 @@ import { ApiError } from "../../utils/api-handler";
 import { writeAudit } from "../audit-log.service";
 import type { AuditContext } from "../audit-log.service";
 import { validateMatchingConfig } from "./matching-config";
-import { validateV3Config, ENGINE_VERSION, SCORING_AVAILABLE } from "./v3/config";
+import { validateV3Config, ENGINE_VERSION } from "./v3/config";
 import type { ScoringConfig } from "../../generated/prisma/client";
 const validateVersioned = (item: ScoringConfig) => {
   const p = item.parameters;
@@ -39,10 +39,6 @@ export const updateConfig = (id: number, data: Partial<ConfigInput>, context: Au
 export const activateConfig = (id: number, context: AuditContext) => prisma.$transaction(async tx => {
   const target = await tx.scoringConfig.findUniqueOrThrow({ where: { id } });
   validateVersioned(target);
-  const parameters = target.parameters;
-  if (!SCORING_AVAILABLE && parameters && typeof parameters === "object" && !Array.isArray(parameters) && parameters.engineVersion === ENGINE_VERSION) {
-    throw new ApiError(409, "V3 hiện có bản thử điểm vai trò; chưa hoàn thành F/S/R tổng hợp để kích hoạt Matching.");
-  }
   const previous = await tx.scoringConfig.findMany({ where: { isActive: true, id: { not: id } } });
   await tx.scoringConfig.updateMany({ where: { isActive: true, id: { not: id } }, data: { isActive: false } });
   for (const old of previous) await writeAudit(tx, context, "ScoringConfig", old.id, "UPDATE", old, { ...old, isActive: false });

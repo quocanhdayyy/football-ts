@@ -1,14 +1,15 @@
+// Historical snapshot verification; requires the matching local import/checkpoint, not an empty test database.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { prisma } = require('../src/config/prisma.ts');
-const { getPlayerStatsById } = require('../src/services/player-stats.service.ts');
-const { scoreForm } = require('../src/services/matching/matching-scoring.service.ts');
-const { matchingTemplate } = require('../src/config/matching-rules.ts');
-const { FIELDS, BASE } = require('../scripts/import-supplemental-stats.cjs');
+const { prisma } = require('../../src/config/prisma.ts');
+const { getPlayerStatsById } = require('../../src/services/player-stats.service.ts');
+const { scoreForm } = require('../../src/services/matching/matching-scoring.service.ts');
+const { matchingTemplate } = require('../../src/config/matching-rules.ts');
+const { FIELDS, BASE } = require('../import-supplemental-stats.cjs');
 const { scopeStats, assertProtected } = require('./top5-baseline.cjs');
-const root = path.join(__dirname, '../data/supplemental-stats');
+const root = path.join(__dirname, '../../data/supplemental-stats');
 const read = file => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
 const sha = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 

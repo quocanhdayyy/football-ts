@@ -366,13 +366,15 @@ POST /api/matching/search — tự tìm ứng viên từ nhu cầu CLB, chấm F
 Scout chỉ dùng yêu cầu CLB của mình và cấu hình active; Admin có thể thử configId chưa active.
 Không tự nhập dữ liệu mẫu hoặc tự gán trọng số S/R. Chi tiết ở [Matching API](README.md#matching).
 
-## Matching
+<a id="matching"></a>
+
+## Matching V1 — API cũ
 
 Tính điểm và lưu kết quả Matching.
 
 Engine đã có phép tính F/S/R, tổng điểm, giải thích, xếp hạng và lưu lịch sử. Công thức/bảng mặc định trong mẫu được chép từ `matching-engine-spec.md`, không thay bằng mô hình ML hoặc công thức của tài liệu bạn cùng nhóm. Không nhập bộ dữ liệu cầu thủ hay tự kích hoạt cấu hình trong lần triển khai này.
 
-Sau đó đã bổ sung [bộ dữ liệu DEMO đầy đủ và hướng dẫn test](../testing/README.md#matching-demo) theo yêu cầu riêng. Cấu hình DEMO dùng trọng số S/R tạm để kiểm tra luồng, không kích hoạt mặc định. ID và kết quả hiện tại ở [matching-demo-data.json](../testing/matching-demo-data.json).
+Bộ demo PostgreSQL cũ đã bị xóa; các ID của mẫu đó không còn dùng để test. Dùng fixture tự dọn trong `npm run test:matching-v3-engine-api` và [form thử V3](../testing/README.md#v3-strategies).
 
 ### 1. Những gì đã giữ nguyên
 

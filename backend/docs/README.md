@@ -18,6 +18,6 @@ Trong mỗi tài liệu có mục lục để đi thẳng vào phần cần dùn
 - [Khảo sát nguồn cũ](archive/player-stats-source-research.md).
 - `archive/reports/`: JSON từng lần nhập/chuyển phạm vi, không phải số lượng database trực tiếp hôm nay.
 
-Dữ liệu DEMO không phải dữ liệu thật. Manifest cũ trong `testing/matching-demo-data.json` đã được đánh dấu xóa. Ước tính thống kê nằm riêng; V3 chỉ dùng chúng trong chế độ PROTOTYPE có nhãn.
+Dữ liệu DEMO không phải dữ liệu thật. Bộ demo PostgreSQL cũ và các ID đã nghỉ dùng; kiểm thử V3 hiện dùng fixture TEST tự dọn. Ước tính thống kê nằm riêng; V3 chỉ dùng chúng trong chế độ PROTOTYPE có nhãn.
 
 Giai đoạn 4 V3 hoàn thành [bàn giao FE và kiểm chứng kỹ thuật](data/README.md#v3-stage-4), có [OpenAPI](api/matching-v3.openapi.json), bộ test toàn luồng và audit chỉ đọc. F/S/R, xếp hạng, lịch sử và form `/login` đã có từ giai đoạn 3. Công thức V1 vẫn ở các endpoint cũ. Dữ liệu thực còn thiếu tài chính/y tế sẽ giữ kết quả chưa hoàn chỉnh.

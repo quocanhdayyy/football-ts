@@ -1,13 +1,14 @@
+// Historical snapshot verification; requires the matching local import/checkpoint, not an empty test database.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { prisma } = require('../src/config/prisma.ts');
+const { prisma } = require('../../src/config/prisma.ts');
 const {scopeStats,assertProtected,restoreDeleted}=require('./top5-baseline.cjs');
-const root = path.join(__dirname,'../data/scope-top5');
+const root = path.join(__dirname,'../../data/scope-top5');
 const report=JSON.parse(fs.readFileSync(path.join(root,'report.json')));
 const before=JSON.parse(fs.readFileSync(path.join(root,report.checkpointFile)));
-const bundle=JSON.parse(fs.readFileSync(path.join(__dirname,'../data/transfermarkt/prepared.json')));
+const bundle=JSON.parse(fs.readFileSync(path.join(__dirname,'../../data/transfermarkt/prepared.json')));
 const hash=v=>crypto.createHash('sha256').update(Buffer.isBuffer(v)?v:JSON.stringify(v)).digest('hex');
 (async()=>{
   const removed=new Set(report.removedPlayerIds),removedClubs=new Set(report.removedClubIds);

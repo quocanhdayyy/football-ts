@@ -8,7 +8,7 @@ Chọn mục để đọc đúng phần cần dùng:
 
 ## Scoring
 
-Thử F S R.
+Các mục F/S/R trong phần này là form V1 còn giữ để tương thích. Dùng phần **Matching V3** phía dưới cho mô hình mới.
 
 ### Financial Fit
 
@@ -240,95 +240,11 @@ Test R bao gồm đăng nhập Scout, các ranh giới ngày nghỉ/trần đang
 
 Các bộ DEMO.
 
-### Matching Demo
+<a id="matching-demo"></a>
 
-Bộ Matching DEMO.
+### Matching Demo cũ
 
-> 21/10/2026: cầu thủ/CLB và các bản ghi mẫu đã được xóa theo yêu cầu. ID trong manifest là lịch sử, không còn dùng để test. Chỉ chạy seed lại nếu chủ động muốn tạo lại dữ liệu giả.
-
-Đã lưu vào PostgreSQL local một cầu thủ **DEMO - Nguyen Minh An**, ST, có vị trí phụ LW/RW. Tất cả thông tin bóng đá, CLB, nguồn và xác minh trong bộ này đều **giả lập**, không phải hồ sơ thật. Tài khoản và phiên đăng nhập dùng tài khoản admin có sẵn; không tạo mật khẩu hay phiên đăng nhập mẫu cho người dùng.
-
-#### Thử ngay trên trang đang dùng
-
-1. Mở hoặc refresh `http://localhost:3000/login`. Giữ phiên admin `quocanh123` đang đăng nhập; nếu hết hạn thì đăng nhập lại bằng mật khẩu của bạn.
-2. Mở **Thử Matching Engine — F, S, R** và nhập:
-
-| Ô trên form | Giá trị đã lưu ngày 15/10/2026 |
-|---|---|
-| ID cầu thủ | **93** |
-| ID yêu cầu CLB | **87** |
-| Mùa giải | **2025/2026** |
-| Vai trò chấm phong độ | **PRIMARY — vị trí chính** |
-| ID cấu hình | **39** — cần nhập vì demo chưa active |
-| Nguồn định giá | `DEMO - synthetic football data` hoặc để trống vì chỉ có một nguồn |
-| Lưu lịch sử | Bỏ chọn để thử; chọn nếu muốn lưu thêm một lần đánh giá |
-
-3. Bấm nút tính. Kết quả ngày tạo mẫu: **F 82,6; S 90,4; R 96,8; tổng 88,56/100**. `complete` phải là `true`, `missing` là `[]`.
-4. Trong mục **Thử API backend**, chọn lịch sử kết quả, nhập ID **14** để xem lần đã lưu sẵn. Bấm tính với lưu lịch sử sẽ trả ID mới.
-
-Đây là ID trong máy hiện tại, không phải ID cố định của chương trình. [matching-demo-data.json](matching-demo-data.json) ghi ID, request, điểm và ngày chuẩn bị mới nhất.
-
-#### Dữ liệu đã liên kết
-
-| Bảng / thực thể | Dữ liệu mẫu |
-|---|---|
-| `users` | Dùng admin hiện có ID 15 làm chủ yêu cầu, shortlist, đầu vào và người xác minh |
-| `auth_sessions` | Dùng phiên có được khi bạn đăng nhập; seed không phát sinh token cho bạn |
-| `players` | ID 93: sinh 15/01/2001, Vietnam, ST, phụ LW/RW, 185 cm, chân phải, giá 50 triệu EUR |
-| `clubs` | CLB cũ 104, CLB hiện tại 105, CLB muốn mua 106; có quốc gia, giải đấu, năm thành lập |
-| `contracts` | ID 14 đã hết hạn với CLB cũ; ID 15 ACTIVE với CLB hiện tại, còn 48 tháng vào ngày tạo; lương hiện tại 8 triệu EUR/năm, điều khoản giải phóng 80 triệu EUR |
-| `transfers` | ID 12: thương vụ PERMANENT từ CLB cũ sang CLB hiện tại, phí 35 triệu EUR, có ngày và nguồn DEMO |
-| `player_stats` | ID 14, mùa 2025/2026: 30 trận, 2250 phút, 15 bàn, 5 kiến tạo, 3 thẻ vàng, 0 thẻ đỏ, 18 tắc bóng thắng, 10 cắt bóng, 25 key pass, 600/750 đường chuyền |
-| `injury_histories` | ID 3: bong gân cổ chân giả lập, nghỉ 20 ngày, đã hồi phục |
-| `player_data_verifications` | Player 93: phạm vi lịch sử chấn thương đủ hai năm; đăng ký CONTRACTED; có ngày, nguồn và người xác minh mẫu |
-| `player_market_value_histories` | ID 32 và 33: 40 triệu EUR một năm trước và 50 triệu EUR ngày đánh giá, cùng nguồn; tăng 25% |
-| `club_requirements` | ID 87: CLB mua cần ST, tuổi 20–30, ngân sách 60 triệu EUR, trần lương 10 triệu EUR/năm, ưu tiên 1 |
-| `matching_inputs` | ID 34: phí mua dự kiến 50 triệu EUR, lương đề nghị 9 triệu EUR/năm, có nguồn cho cả hai |
-| `shortlist_lists` | ID 28: danh sách ST mẫu của admin |
-| `shortlists` | ID 38: cầu thủ 93 trong danh sách 28, gắn yêu cầu 87, ưu tiên 1 và ghi chú |
-| `notifications` | ID 15: thông báo chấn thương mẫu liên kết cầu thủ/chủ danh sách; `readAt=null` nghĩa là chưa đọc |
-| `scoring_configs` | ID 39: cấu hình DEMO riêng, đầy đủ công thức/mốc/bảng/trọng số; **không kích hoạt mặc định** |
-| `match_results` | ID 14: engine tự tính và lưu F/S/R, điểm tổng, điểm tiêu chí, Pros/Cons, snapshot và ngày đánh giá |
-| `audit_logs` | Nhật ký tạo dữ liệu mẫu, xác minh và lưu kết quả, liên kết người thực hiện |
-
-`_prisma_migrations` là bảng quản lý migration của Prisma, không phải dữ liệu cầu thủ và không cần thêm bản ghi mẫu. Các trường cho phép null vẫn giữ null khi có ý nghĩa, ví dụ thông báo chưa đọc.
-
-#### Kiểm tra cách ra điểm
-
-Cấu hình DEMO dùng trọng số **tạm cho việc test**, chưa thay thế quyết định cuối cùng:
-
-- Tổng: F 40%, S 40%, R 20%.
-- F: phí 45%, lương 35%, hợp đồng 20% theo bản đã chốt.
-- S: vị trí 20%, tuổi 20%, phong độ 60%.
-- R: chấn thương 60%, bán lại 40%. Bên trong bán lại vẫn giữ biến động giá 60% + tuổi 40% đã chốt.
-
-Tính vào ngày 15/10/2026:
-
-- F: phí = `clamp(200 − 120 × 50/60) = 100`; lương = `160 × (1,5 − 9/10) = 96`; hợp đồng = `100 − 100 × 48/60 = 20`. F = **82,6**.
-- /90: bàn = **0,6**, kiến tạo = **0,2**, key pass = **1**. Cả ba đạt mốc A nên mỗi điểm chỉ số = 80; 2250 phút đạt 100. Phong độ ST = `20% × 100 + 50% × 80 + 20% × 80 + 10% × 80` = **84**.
-- S: ST khớp vị trí = 100, tuổi 25 = 100, phong độ = 84. S = **90,4**.
-- R: 20 ngày chấn thương, đã hồi phục, đủ phạm vi xác minh ⇒ 100; giá tăng 25% ⇒ điểm biến động 100; tuổi bán lại 25 ⇒ 80. Bán lại = **92**, R = **96,8**.
-- Tổng = `0,4 × 82,6 + 0,4 × 90,4 + 0,2 × 96,8` = **88,56**.
-
-Nguồn định giá/chuyển nhượng ghi `UNKNOWN` kèm chữ DEMO: không gắn nhãn nguồn chính thức cho số liệu bịa. Cảnh báo nguồn không làm `complete` thành false.
-
-#### Dùng lại vào ngày khác
-
-Engine dùng hai giá gần nhất không sau các ngày đích, nhưng vẫn cần xác minh chấn thương bao phủ tới ngày đánh giá. Nếu test vào ngày khác và muốn làm mới bằng chứng của riêng bộ mẫu này, trong thư mục `backend` chạy:
-
-```sh
-npm run seed:matching -- --owner-id 15
-```
-
-Script dùng lại bộ DEMO đã ghi trong manifest AuditLog, bổ sung hai mốc giá và cập nhật xác minh của riêng mẫu này. Không tạo trùng cầu thủ/CLB/yêu cầu; không thay dữ liệu cũ ngoài DEMO hoặc cấu hình active. Không ghi đè thống kê/giá bạn đã sửa thủ công. Hợp đồng và tuổi tiếp tục trôi theo ngày thực nên điểm F/S/R có thể khác ngày tạo; kết quả mới ghi trong JSON. Cùng ngày và cùng tiêu chí thì dùng lại lịch sử đã lưu; bấm lưu trên form chủ động tạo thêm lịch sử.
-
-Kiểm tra bộ mẫu bằng HTTP thật và mô phỏng submit form hiện có:
-
-```sh
-npm run test:matching-demo
-```
-
-Kiểm tra tạo tài khoản admin tạm riêng rồi xóa sau khi chạy; không đổi mật khẩu hay phiên đăng nhập đang dùng của bạn. Không phải kiểm tra giao diện bằng trình duyệt trực quan.
+Bộ demo PostgreSQL cũ đã bị xóa ngày 21/10/2026. Đã bỏ manifest ID, script seed và test chỉ trả SKIP để tránh hướng dẫn dùng dữ liệu không còn tồn tại. Muốn kiểm tra đầy đủ công thức và luồng V3, chạy `npm run test:matching-v3-engine-api`: fixture TEST riêng được tạo và tự dọn. Cách dùng form V3 ở phần dưới.
 
 ### Injury Demo
 
@@ -423,3 +339,10 @@ Import [OpenAPI JSON](../api/matching-v3.openapi.json) vào Postman, chọn back
 
 
 Xác nhận local ngày 17/11/2026: toàn bộ lệnh test đã qua trên database hiện có và trên một database PostgreSQL trống vừa chạy `prisma migrate deploy`. Database tạm được xóa sau khi thử. Kiểm tra này chứng minh migration và fixture đủ để chạy kiểm thử từ đầu; không chứng minh dữ liệu cầu thủ nguồn sẽ tự có sau khi clone, và không thay thế kiểm thử tải hoặc đối chứng tuyển trạch.
+
+
+### Test phần mềm và kiểm tra snapshot import
+
+`npm test` chạy build, kiểm tra OpenAPI và 25 nhóm test có fixture/đầu vào tự chuẩn bị, gồm API, phân quyền, nhập/chuẩn bị dữ liệu, V1 và V3. PostgreSQL cần có schema đã migrate; nên dùng database test riêng. Mọi suite chạy tuần tự và dọn fixture.
+
+Các kiểm tra snapshot import cũ chuyển sang `scripts/verification/` và tên lệnh `verify:*`. Chúng cần đúng dataset/checkpoint local của lần import lịch sử, không phải test chạy được trên DB trống và không chứng minh database hiện tại phải giữ nguyên mọi ID/số lượng cũ. Để xem độ phủ hiện tại dùng `npm run matching:v3:audit`. Các bộ test prepare/plan vẫn kiểm tra quy tắc fill NULL, giữ số 0, provenance và chạy lại không đổi.

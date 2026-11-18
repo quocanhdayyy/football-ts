@@ -49,7 +49,7 @@ Build tự xóa bản `dist` cũ trước khi sinh lại. Có thể xóa riêng 
 | `backend/src/services/matching/` | Engine F/S/R, công thức, cấu hình, dữ liệu đầu vào và kết quả Matching |
 | `backend/prisma/` | Schema và lịch sử migration cần giữ |
 | `backend/public/` | Trang thử API hiện tại |
-| `backend/scripts/` | Tạo admin, lấy/chuẩn bị/nhập dữ liệu, chuẩn hóa và seed demo |
+| `backend/scripts/` | Tạo admin, lấy/chuẩn bị/nhập dữ liệu, chuẩn hóa và kiểm tra dữ liệu |
 | `backend/tests/` | Kiểm thử nghiệp vụ, API và quá trình nhập |
 | `backend/docs/` | Tài liệu chia theo API, dữ liệu, test và lịch sử; bắt đầu từ mục lục |
 | `backend/data/` | Dữ liệu nguồn/cache/checkpoint và bản sao lưu cục bộ, đã ignore |
@@ -66,6 +66,6 @@ Các API thử riêng F/S/R dùng chung `src/controllers/preview.controller.ts` 
 
 - [Thứ tự kết nối FE và payload](backend/docs/api/README.md#fe-handoff).
 - [OpenAPI JSON để import Postman](backend/docs/api/matching-v3.openapi.json).
-- Trong backend: `npm run test:matching-v3:all` kiểm tra phần mềm; `npm run matching:v3:audit` kiểm kê dữ liệu local chỉ đọc.
+- Trong backend: `npm test` kiểm tra toàn bộ phần mềm, `npm run test:matching-v3:all` chỉ kiểm tra nhóm V3/hồi quy; `npm run matching:v3:audit` kiểm kê dữ liệu local chỉ đọc.
 
 Bốn giai đoạn kỹ thuật V3 đã có; dữ liệu ước tính vẫn được gắn nhãn. Lương/hợp đồng/chấn thương thiếu sẽ làm tổng chưa tính được, không tự thay bằng số giả. [Độ phủ và giới hạn kiểm chứng](backend/docs/data/README.md#v3-stage-4).

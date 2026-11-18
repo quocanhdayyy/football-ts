@@ -51,3 +51,13 @@ test('report M yields78.981266...,and strategies affect only total',()=>{
  near(f,74.102);near(s,81.408);near(r,80.23333333333333);near(F.weighted({financial:f,squad:s,risk:r},C.strategies.BALANCED),78.98126666666667);
  assert.notEqual(F.weighted({financial:f,squad:s,risk:r},C.strategies.MONEYBALL),F.weighted({financial:f,squad:s,risk:r},C.strategies.IMMEDIATE_ROLE));
 });
+
+test('free agent requires current dated evidence,source,and no active contract',()=>{
+ const v={registrationStatus:'FREE_AGENT',registrationAsOf:day,registrationVerifiedAt:day,registrationSource:'TEST registry'};
+ assert(F.verifiedFreeAgent(v,false,day,day));
+ assert(!F.verifiedFreeAgent({...v,registrationSource:null},false,day,day));
+ assert(!F.verifiedFreeAgent({...v,registrationSource:'   '},false,day,day));
+ assert(!F.verifiedFreeAgent(v,true,day,day));
+ assert(!F.verifiedFreeAgent({...v,registrationAsOf:shift(day,-1)},false,day,day));
+ assert(!F.verifiedFreeAgent({...v,registrationVerifiedAt:new Date('2027-01-01')},false,day,day));
+});

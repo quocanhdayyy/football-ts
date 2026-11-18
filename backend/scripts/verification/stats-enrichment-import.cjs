@@ -1,12 +1,13 @@
+// Historical snapshot verification; requires the matching local import/checkpoint, not an empty test database.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { prisma } = require('../src/config/prisma.ts');
-const { getPlayerStatsById } = require('../src/services/player-stats.service.ts');
-const { FIELDS } = require('../scripts/import-stats-enrichment.cjs');
+const { prisma } = require('../../src/config/prisma.ts');
+const { getPlayerStatsById } = require('../../src/services/player-stats.service.ts');
+const { FIELDS } = require('../import-stats-enrichment.cjs');
 const { scopeStats, assertProtected } = require('./top5-baseline.cjs');
-const root = path.join(__dirname, '../data/stats-enrichment');
+const root = path.join(__dirname, '../../data/stats-enrichment');
 const read = name => JSON.parse(fs.readFileSync(path.join(root, name), 'utf8'));
 const hash = data => crypto.createHash('sha256').update(data).digest('hex');
 (async () => {

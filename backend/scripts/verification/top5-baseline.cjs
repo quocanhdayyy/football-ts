@@ -1,16 +1,17 @@
+// Historical snapshot verification; requires the matching local import/checkpoint, not an empty test database.
 // Historical import checks must account for the explicit, audited scope reduction.
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
-const root = path.join(__dirname,'../data/scope-top5');
+const root = path.join(__dirname,'../../data/scope-top5');
 const read = file => JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
 const scope = fs.existsSync(path.join(root,'report.json')) ? read('report.json') : null;
 const checkpoint = scope ? read(scope.checkpointFile) : null;
 const removed = new Set(scope?.removedPlayerIds || []), removedClubs = new Set(scope?.removedClubIds || []);
 const updates = new Map((scope?.updatedStats || []).map(r=>[r.id,r.data]));
 const sha = v => crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
-const maintenanceRoot=path.join(__dirname,'../data/maintenance');
+const maintenanceRoot=path.join(__dirname,'../../data/maintenance');
 const repairReport=fs.existsSync(path.join(maintenanceRoot,'repair-report.json'))?JSON.parse(fs.readFileSync(path.join(maintenanceRoot,'repair-report.json'),'utf8')):null;
 const repair=repairReport?JSON.parse(fs.readFileSync(path.join(maintenanceRoot,repairReport.backupFile),'utf8')):null;
 if(repairReport)assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(maintenanceRoot,repairReport.backupFile))).digest('hex'),repairReport.backupSha256);

@@ -7,6 +7,7 @@ const {loadDataset}=require('../src/services/matching/v3/squad.service.ts');
 const {eligibility,scoreVector}=require('../src/services/matching/v3/performance.ts');
 const {inspectInputs}=require('../src/services/matching/v3/input-readiness.ts');
 const {injuryScore,priceScore,resaleAge}=require('../src/services/matching/v3/risk.ts');
+const {verifiedFreeAgent}=require('../src/services/matching/v3/financial.ts');
 const {evaluationDay}=require('../src/services/matching/v3/engine.ts');
 const {playerAge,shiftCalendarMonths}=require('../src/services/matching/matching-scoring.service.ts');
 const group=rows=>{const m=new Map();for(const r of rows){const v=m.get(r.playerId)||[];v.push(r);m.set(r.playerId,v)}return m};
@@ -27,7 +28,7 @@ async function audit(season){
    quotePairsWithFee:quoteRows.filter(r=>r.estimatedFee!==null).length,quotePairsWithWage:quoteRows.filter(r=>r.expectedSalaryPerYear!==null).length,quotePairsWithBoth:quoteRows.filter(r=>r.estimatedFee!==null&&r.expectedSalaryPerYear!==null).length};
   for(const c of candidates){const id=c.row.playerId,v=verification.get(id)||null,active=contracts.get(id)||[];
    if(active.length===1)coverage.uniqueActiveContract++;if(active.length>1)coverage.overlappingActiveContracts++;
-   if(!active.length&&v?.registrationStatus==='FREE_AGENT'&&v.registrationAsOf?.getTime()===day.getTime()&&v.registrationVerifiedAt&&v.registrationVerifiedAt<=now)coverage.verifiedFreeAgentToday++;
+   if(verifiedFreeAgent(v,active.length>0,day,now))coverage.verifiedFreeAgentToday++;
    if(injuryScore(injuries.get(id)||[],v,day,now,config.settings,false).score!==null)coverage.completeInjuryHistory24Months++;
    const price=priceScore(valuations.get(id)||[],day,now,config.settings);if(price.score!==null)coverage.usablePriceSeries24Months++;if(price.missing.includes('valuationSourceAmbiguous'))coverage.ambiguousPriceSource++;
    const age=playerAge(c.row.player.dateOfBirth,day);if(age!==null&&Number.isFinite(resaleAge(age+3)))coverage.resaleAgeKnown++;

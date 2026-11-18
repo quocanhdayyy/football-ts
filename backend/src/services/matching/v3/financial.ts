@@ -1,5 +1,13 @@
 import type { V3Config, RunOptions } from "./config";
 import { Prisma } from "../../../generated/prisma/client";
+import type { PlayerDataVerification } from "../../../generated/prisma/client";
+
+export function verifiedFreeAgent(verification: PlayerDataVerification | null, hasActiveContract: boolean, asOf: Date, now: Date) {
+  return !hasActiveContract && verification?.registrationStatus === "FREE_AGENT"
+    && verification.registrationAsOf?.getTime() === asOf.getTime()
+    && !!verification.registrationSource?.trim()
+    && !!verification.registrationVerifiedAt && verification.registrationVerifiedAt <= now;
+}
 export function weighted(values: Record<string, number | null>, weights: Record<string, number>): number | null {
   let sum = 0;
   for (const [key, w] of Object.entries(weights)) {

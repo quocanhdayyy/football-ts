@@ -207,7 +207,7 @@ Mặc định dry-run; thêm `--apply` mới ghi dữ liệu. Repair giới hạ
 ```sh
 npm run test:estimation
 npm run test:estimation-api
-npm run test:top5-scope
+npm run verify:top5-scope
 npm run test:matching-engine-api
 ```
 

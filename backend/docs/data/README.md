@@ -53,7 +53,7 @@ Trong 2.684 cầu thủ nguồn, mức độ có **năm trường bổ sung** (t
 - **120 người có một phần.**
 - **379 người chưa có cả năm trường.**
 
-Ô quan sát chưa biết giữ `null`, không đổi thành 0. API thống kê trả thêm `estimate` riêng cho 499 người; đây là 2.107 giá trị ước tính, không phải thống kê thật và Matching chưa tự sử dụng chúng. Có đủ thống kê không có nghĩa đủ mọi đầu vào F/S/R. Trong nhóm này còn 121 người chưa có giá có ngày, 36 người thiếu chiều cao và 33 người thiếu chân thuận.
+Ô quan sát chưa biết giữ `null`, không đổi thành 0. API thống kê trả thêm `estimate` riêng cho 499 người; đây là 2.107 giá trị ước tính, không phải thống kê thật ; engine V1 giữ cách tính cũ, còn V3 dùng metrics có nhãn theo chế độ dữ liệu. Có đủ thống kê không có nghĩa đủ mọi đầu vào F/S/R. Trong nhóm này còn 121 người chưa có giá có ngày, 36 người thiếu chiều cao và 33 người thiếu chân thuận.
 
 ### Xem và test
 
@@ -106,7 +106,7 @@ npm run data:enrich:import -- --actor-id 15 --apply
 
 Dùng ID admin của máy tương ứng. Transfermarkt raw vẫn là bộ snapshot rộng của nhà cung cấp nhưng bước prepare chỉ chọn năm giải. Importer từ chối bundle tám giải để tránh nhập lại các giải đã loại. Football Today chỉ tải năm giải; cache của ba giải cũ được bỏ qua khi chuẩn bị dữ liệu.
 
-Nguồn thông báo ngừng cập nhật ở tháng 7/2026; từng bảng có mốc dừng khác nhau. Giữ checksum snapshot và độ tin cậy `UNKNOWN`, không gắn `OFFICIAL`. Không dùng FPL-Core-Insights hoặc giá Fantasy. Vị trí tiếp tục được chuẩn hóa thành ST/LW/RW/CDM/CAM/CM/CB/RB/LB/GK; GK chưa có công thức phong độ.
+Nguồn thông báo ngừng cập nhật ở tháng 7/2026; từng bảng có mốc dừng khác nhau. Giữ checksum snapshot và độ tin cậy `UNKNOWN`, không gắn `OFFICIAL`. Không dùng FPL-Core-Insights hoặc giá Fantasy. Vị trí tiếp tục được chuẩn hóa thành ST/LW/RW/CDM/CAM/CM/CB/RB/LB/GK; Form V1 chưa có công thức phong độ GK; V3 đã có hai vai trò thủ môn theo ma trận.
 
 ### Việc thu phạm vi đã thực hiện
 
@@ -122,10 +122,10 @@ Trước khi xóa đã tạo bản PostgreSQL custom dump, kiểm tra đọc đ�
 
 ```sh
 npm run test:data-prepare
-npm run test:top5-scope
-npm run test:data-import
-npm run test:data-stats-import
-npm run test:data-enrich-import
+npm run verify:top5-scope
+npm run verify:data-import
+npm run verify:data-stats
+npm run verify:data-enrich
 npm run test:matching
 npm run test:squad-preview
 npm run test:risk-preview
@@ -294,12 +294,12 @@ npm run data:enrich:import -- --actor-id 15
 # Xem dry-run trước khi áp dụng:
 npm run data:enrich:import -- --actor-id 15 --apply
 npm run test:data-enrich
-npm run test:data-enrich-import
+npm run verify:data-enrich
 ```
 
 ID admin trên là ID máy hiện tại. Raw HTML/CSV, bundle, checkpoint và báo cáo chi tiết nằm trong `data/stats-enrichment/` và được gitignore. [Báo cáo đã nhập](../archive/reports/stats-enrichment-report.json) chứa số lượng thực tế; API PlayerStats hiện có đọc trực tiếp các trường vừa bổ sung.
 
-Đã chạy thành công `test:data-enrich`, `test:data-enrich-import`, `test:data-import` (gồm kiểm tra HTTP với Scout), `test:data-stats-import`, `test:matching` và `tsc --noEmit`. Nhập lại cùng bundle: **0 thay đổi**.
+Đã chạy thành công `test:data-enrich`, `verify:data-enrich`, `verify:data-import` (gồm kiểm tra HTTP với Scout), `verify:data-stats`, `test:matching` và `tsc --noEmit`. Nhập lại cùng bundle: **0 thay đổi**.
 
 ## Estimation
 
@@ -671,3 +671,10 @@ Có 26.699 ô DERIVED, 19.137 ô ESTIMATED, 6 ô OBSERVED và 142 ô MISSING tro
 - Audit không đổi số bản ghi nghiệp vụ/cache; test tạo fixture TEST riêng và dọn sau khi chạy.
 
 **Chưa được xác nhận:** độ đúng của xếp hạng so với nhãn tuyển trạch độc lập, độ chính xác thực của các chỉ số suy luận, khả năng chịu tải nhiều người dùng và độ đầy đủ tài chính/y tế. Kiểm thử công thức qua không biến dữ liệu ước tính thành dữ liệu thật. Đây là phần giới hạn dữ liệu/đánh giá thực nghiệm cần xử lý khi đưa vào sử dụng; không mô tả hệ thống là đã đủ dữ liệu cho mọi cầu thủ.
+
+
+### Rà soát sau bàn giao
+
+Các kiểm tra đối chiếu snapshot import nằm trong `scripts/verification/`, chạy bằng `verify:data-import`, `verify:data-stats`, `verify:data-enrich`, `verify:top5-scope`. Chúng chỉ dùng khi có đúng bộ dữ liệu/checkpoint của lần import tương ứng; không chạy trong `npm test` hoặc trên DB trống. Báo cáo JSON lịch sử vẫn giữ trong archive; audit V3 mới là lệnh đọc độ phủ hiện tại.
+
+Đã chặn việc suy ra phí 0 từ định giá 0: giá trị thị trường không dương không xác nhận cầu thủ tự do. Fallback phí dùng Decimal và vẫn chỉ cho phép PROTOTYPE. Cầu thủ tự do cần nguồn đăng ký, ngày xác minh hợp lệ và không có hợp đồng ACTIVE. Công thức điểm đã chốt giữ nguyên.

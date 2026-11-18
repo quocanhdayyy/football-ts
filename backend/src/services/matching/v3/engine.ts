@@ -9,7 +9,7 @@ import { ENGINE_VERSION, IMPLEMENTATION_STAGE, matrixVersion, roles as catalog, 
 import type { RunOptions, Weights } from "./config";
 import { loadDataset, resolveConfig, asJson, ROLE_ALGORITHM } from "./squad.service";
 import { eligibility, scoreVector, record } from "./performance";
-import { financial, weighted } from "./financial";
+import { financial, weighted, verifiedFreeAgent } from "./financial";
 import { risk } from "./risk";
 
 export type MatchingInputV3 = { requirementId: number; season: string; roleIds: string[]; options: RunOptions; configId?: number;
@@ -50,12 +50,12 @@ async function evaluateBatch(tx: Prisma.TransactionClient, input: MatchingInputV
     const verification = verifications.get(player.id) ?? null, medical = injuries.get(player.id) ?? [], values = valuations.get(player.id) ?? [];
     const missing: string[] = [], excluded: string[] = [], warnings: string[] = [], pros: string[] = [], cons: string[] = [];
     if (input.options.dataMode === "PROTOTYPE") warnings.push("PROTOTYPE: đầu vào và tập tham chiếu có thể chứa ước tính; chưa phải đánh giá đo lường đầy đủ.");
-    const free = !active.length && verification?.registrationStatus === "FREE_AGENT" && verification.registrationAsOf?.getTime() === asOf.getTime() && !!verification.registrationVerifiedAt && verification.registrationVerifiedAt <= now;
+    const free = verifiedFreeAgent(verification, active.length > 0, asOf, now);
     const sourceValues = values.filter(v => !input.valuationSource || v.source === input.valuationSource);
     const feeValuation = new Set(sourceValues.map(v => v.source)).size === 1 ? sourceValues.at(-1) ?? null : null;
     let fee = quote?.estimatedFee?.toNumber() ?? (free ? 0 : null), feeBasis = quote?.estimatedFee != null ? "REQUIREMENT_QUOTE" : free ? "VERIFIED_FREE_AGENT_TODAY" : "UNKNOWN";
-    if (fee === null && input.options.dataMode === "PROTOTYPE" && config.settings.allowMarketValueFeeEstimate && feeValuation) {
-      fee = feeValuation.marketValue.toNumber() * config.settings.marketValueFeeMultiplier; feeBasis = "MARKET_VALUE_ESTIMATE";
+    if (fee === null && input.options.dataMode === "PROTOTYPE" && config.settings.allowMarketValueFeeEstimate && feeValuation?.marketValue.gt(0)) {
+      fee = feeValuation.marketValue.mul(config.settings.marketValueFeeMultiplier).toNumber(); feeBasis = "MARKET_VALUE_ESTIMATE";
       warnings.push("Phí mua là giá trị thị trường × hệ số cấu hình, có ngày/nguồn; chưa phải báo giá đã xác minh.");
     }
     if (active.length > 1) warnings.push("Hợp đồng ACTIVE chồng lấn; chưa xác định thời hạn còn lại.");
@@ -103,7 +103,7 @@ async function evaluateBatch(tx: Prisma.TransactionClient, input: MatchingInputV
       squad: weights.squad ? squad === null ? null : weights.squad * squad : 0, risk: weights.risk ? riskResult.score === null ? null : weights.risk * riskResult.score : 0 };
     for (const [key, score] of Object.entries({ financial: finance.score, squad, risk: riskResult.score })) if (score !== null) (score >= 70 ? pros : cons).push(`${key}: ${rounded(score)}/100, đóng góp ${rounded(contributions[key as keyof typeof contributions]) ?? "chưa biết"} điểm tổng.`);
     if (riskResult.injury.estimated) warnings.push("Điểm chấn thương tạm 70 theo cấu hình PROTOTYPE; chưa xác minh lịch sử.");
-    const criteria = { financial: { ...finance, feeBasis, feeSource: quote?.feeSource ?? (feeBasis === "MARKET_VALUE_ESTIMATE" ? feeValuation?.source : null) ?? null,
+    const criteria = { financial: { ...finance, feeBasis, feeSource: feeBasis === "REQUIREMENT_QUOTE" ? quote?.feeSource ?? null : feeBasis === "MARKET_VALUE_ESTIMATE" ? feeValuation?.source ?? null : free ? verification!.registrationSource : null,
       feeValuedAt: feeBasis === "MARKET_VALUE_ESTIMATE" ? feeValuation?.valuedAt : null, salarySource: quote?.salarySource ?? null },
       squad: { score: squad, chosen, requestedRoleIds: input.roleIds, metrics: chosen ? vector!.metricsByGroup[chosen.group] : null }, risk: riskResult, contributions };
     let resultId: number | null = null;
