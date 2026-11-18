@@ -54,7 +54,8 @@
     "verify:data-stats": "node --import tsx scripts/verification/supplemental-stats-import.cjs",
     "verify:top5-scope": "node --import tsx scripts/verification/top5-scope.cjs",
     "verify:data-import": "node --import tsx scripts/verification/transfermarkt-import.cjs",
-    "test": "npm run build && npm run matching:v3:openapi -- --check && node scripts/test.cjs"
+    "test": "npm run build && npm run matching:v3:openapi -- --check && node scripts/test.cjs",
+    "test:admin-protection": "tsx tests/admin-protection.test.cjs"
   },
   "keywords": [],
   "author": "",

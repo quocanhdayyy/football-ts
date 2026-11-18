@@ -62,3 +62,10 @@ npm run matching:v3:openapi -- --check
 Audit chỉ đọc PostgreSQL, không seed hoặc đổi cache/cấu hình/kết quả; xuất báo cáo local được gitignore. [Độ phủ và công thức](../data/README.md#v3-stage-4). [OpenAPI để import Postman](../api/matching-v3.openapi.json) và [thứ tự gọi từ FE](../api/README.md#fe-handoff).
 
 Các kiểm tra snapshot import cũ nằm trong scripts/verification, chạy bằng verify:*. Chúng cần đúng dataset/checkpoint lịch sử, không phải test trên DB trống. Các test prepare/plan vẫn kiểm tra fill NULL, giữ số 0 và provenance.
+
+
+## Kiểm tra bảo vệ admin
+
+Trong database test riêng đã migrate và chưa có tài khoản, chạy `npm run test:admin-protection`. Suite này cũng được gọi đầu tiên trong `npm test`; nó từ chối chạy nếu bảng users đã có dữ liệu, không xóa hoặc hạ quyền tài khoản sẵn có để tạo tình huống kiểm thử.
+
+Test tạo fixture và kiểm tra: chặn admin cuối cùng, chặn tự xóa/tự hạ quyền khi có admin khác, rollback payload bị từ chối, sửa hồ sơ/quản lý user hợp lệ, và quyền cũ bị từ chối sau khi thay role. Ba test đồng thời giữ khóa cho tới khi cả hai HTTP request đã qua middleware và đang chờ trong transaction; sau đó kiểm tra chỉ một thao tác thành công và vẫn còn một admin. Fixture và database tạm dùng khi xác minh được dọn sau test.

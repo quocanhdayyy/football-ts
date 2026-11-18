@@ -40,6 +40,15 @@ Trong thư mục backend chạy `npm run admin:create`, nhập username, email v
 Mật khẩu không hiển thị trên Terminal. Lệnh chỉ tạo Admin đầu tiên và không sửa tài khoản có sẵn.
 Sau đó Admin có thể tạo tài khoản khác qua POST /api/users.
 
+### Bảo vệ tài khoản quản trị
+
+PATCH `/api/users/:id` và DELETE `/api/users/:id` trả HTTP 409 nếu thao tác xóa/hạ quyền Admin cuối cùng. Admin cũng không được tự xóa hoặc tự hạ quyền ngay cả khi còn admin khác. Sửa username/email/password của chính mình và gửi role ADMIN để giữ nguyên quyền vẫn được phép.
+
+Các thao tác ghi qua API quản lý user lấy khóa transaction chung trong PostgreSQL, sau đó đọc lại role của người thao tác và đếm admin trên dữ liệu vừa commit. Hai admin đồng thời hạ quyền/xóa nhau không thể cùng làm mất quyền quản trị: sau thao tác đầu, người đã bị hạ quyền hoặc xóa sẽ bị từ chối với 403 khi request đang chờ tiếp tục. Đây là kiểm tra quyền trong transaction, ngoài middleware xác thực.
+
+Bootstrap `npm run admin:create` vẫn tạo admin đầu tiên khi chưa có admin. Các lỗi 404 (không có user), 409 (email/username trùng hoặc user còn được tham chiếu) giữ nguyên. Response không trả passwordHash.
+
+
 ### Ví dụ body mới
 
 POST /api/club-requirements:
@@ -69,10 +78,6 @@ backend luôn kiểm tra quyền, không dựa vào việc frontend ẩn nút.
 - /api/matching-inputs: Scout CRUD theo chủ yêu cầu CLB; Admin quản lý tất cả. Chủ dữ liệu lấy từ yêu cầu, không nhận userId trong body.
 - /api/player-data-verifications: Scout đọc; Admin PATCH tạo/cập nhật hoặc DELETE xác minh, ID trên đường dẫn là ID cầu thủ.
 - /api/players: Admin có thể tạo/sửa thêm secondaryPositions; body cũ vẫn tương thích.
-- POST /api/matching/squad/preview: Scout/Admin thử phong độ và S từ thống kê đã lưu, trọng số S tự nhập chỉ dùng trong lần thử; không lưu.
-- POST /api/matching/risk/evaluate và /risk/preview: Scout/Admin thử R từ dữ liệu đã lưu hoặc số giả lập, tách rõ nguồn dữ liệu, không lưu hoặc thay cấu hình; xem [cách thử R](../testing/README.md#risk-future).
-- GET/POST /api/matching/risk/demo: Scout/Admin xem/chọn [10 mẫu chấn thương giả lập](../testing/README.md#injury-demo), kết quả luôn ghi DEMO, không cập nhật lịch sử thật.
-- POST /api/matching/evaluate, /rank và /search: Scout dùng yêu cầu của mình/cấu hình active; Admin quản lý tất cả và thử configId chưa active. evaluate chỉ lưu khi save=true và đủ dữ liệu.
 
 Chi tiết request/response và giới hạn ở [API các thực thể](README.md#entities).
 

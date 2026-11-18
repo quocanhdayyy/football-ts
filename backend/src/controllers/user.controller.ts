@@ -2,6 +2,8 @@ import type { Request, Response, NextFunction } from "express";
 import { Prisma, UserRole } from "../generated/prisma/client";
 import { getUsers, getUserById, createUser, updateUser, deleteUser } from "../services/user.service";
 import type { CreateUserInput, UpdateUserInput } from "../services/user.service";
+import { currentUser } from "../middleware/auth.middleware";
+import { ApiError } from "../utils/api-handler";
 
 class UserInputError extends Error {}
 const parseId = (value: unknown) => {
@@ -49,12 +51,14 @@ const parseInput = (body: unknown, partial: boolean): UpdateUserInput => {
   return data;
 };
 const handleError = (error: unknown, res: Response, next: NextFunction) => {
+  if (error instanceof ApiError) { res.status(error.status).json({ status: "error", message: error.message }); return; }
   if (error instanceof UserInputError) { res.status(400).json({ status: "error", message: error.message }); return; }
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     const errors: Record<string, [number,string]> = {
       P2002: [409, "Username hoặc email đã tồn tại."],
       P2025: [404, "Không tìm thấy người dùng."],
       P2003: [409, "Không thể xóa người dùng đang có dữ liệu liên quan."],
+      P2034: [409, "Dữ liệu tài khoản đang thay đổi đồng thời. Hãy thử lại."],
     };
     const result = errors[error.code];
     if (result) { res.status(result[0]).json({ status: "error", message: result[1] }); return; }
@@ -73,16 +77,16 @@ export const getUserDetail = async (req: Request, res: Response, next: NextFunct
   } catch (error) { handleError(error, res, next); }
 };
 export const addUser = async (req: Request, res: Response, next: NextFunction) => {
-  try { res.status(201).json({ status: "success", data: await createUser(parseInput(req.body, false) as CreateUserInput) }); }
+  try { res.status(201).json({ status: "success", data: await createUser(parseInput(req.body, false) as CreateUserInput, currentUser(res).id) }); }
   catch (error) { handleError(error, res, next); }
 };
 export const editUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = parseId(req.params.id);
-    res.json({ status: "success", data: await updateUser(id, parseInput(req.body, true)) });
+    res.json({ status: "success", data: await updateUser(id, parseInput(req.body, true), currentUser(res).id) });
   } catch (error) { handleError(error, res, next); }
 };
 export const removeUser = async (req: Request, res: Response, next: NextFunction) => {
-  try { await deleteUser(parseId(req.params.id)); res.status(204).send(); }
+  try { await deleteUser(parseId(req.params.id), currentUser(res).id); res.status(204).send(); }
   catch (error) { handleError(error, res, next); }
 };
