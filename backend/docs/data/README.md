@@ -44,7 +44,6 @@ Phạm vi là **người đã thi đấu trong năm giải mùa 2025/2026**, kh�
 | Lịch sử giá | 53.352 mốc Transfermarkt có ngày; giá gần nhất không được coi là giá hôm nay. |
 | Hợp đồng/lương | Nguồn hồ sơ chỉ có ngày hết hạn ở một số người, thiếu ngày bắt đầu, lương và chứng cứ hiệu lực. Chưa tự tạo Contract thật hoặc lương giả. |
 | Chấn thương thật | Không có trong bộ Transfermarkt đã tải. Không có dòng chấn thương chưa chứng minh cầu thủ khỏe mạnh; điểm thiếu giữ null. |
-| Chấn thương DEMO | [10 tình huống tự tạo](../testing/README.md#injury-demo), nằm riêng trong mã nguồn, không ghi vào lịch sử/xác minh thật. Chỉ mục test R DEMO sử dụng. |
 | Dữ liệu người dùng | Nhu cầu CLB, phí/lương đề nghị và shortlist do người dùng tạo; không tự sinh cho cả 96 CLB. |
 
 Trong 2.684 cầu thủ nguồn, mức độ có **năm trường bổ sung** (tắc bóng, cắt bóng, tạo cơ hội, chuyền thành công/tổng chuyền):
@@ -69,11 +68,10 @@ Mở `http://localhost:3000/login`, dùng phiên đăng nhập hiện có.
 | Vinicius Junior | 1447 | 1368 |
 | Bellingham | 2440 | 2361 |
 
-ID các hồ sơ còn lại giữ nguyên sau thu phạm vi. Các số này thuộc máy hiện tại. API Cầu thủ và mục test S/R dùng ID cầu thủ; API Thống kê cầu thủ dùng ID thống kê.
+ID các hồ sơ còn lại giữ nguyên sau thu phạm vi. Các số này thuộc máy hiện tại. API Cầu thủ, form Matching V3 và bản thử điểm vai trò dùng ID cầu thủ; API Thống kê cầu thủ dùng ID thống kê.
 
-- [Test S / phong độ](../testing/README.md#squad-fit).
-- [Test R thật / giả lập](../testing/README.md#risk-future).
-- [Bộ chấn thương DEMO riêng](../testing/README.md#injury-demo).
+- [Thử riêng điểm vai trò V3](../testing/README.md#thử-riêng-điểm-vai-trò).
+- [Thử F/S/R trong Matching V3](../testing/README.md#thử-chiến-lược-và-matching).
 - [Báo cáo dữ liệu nguồn hiện tại](../archive/reports/transfermarkt-import-report.json).
 
 Trong pgAdmin:

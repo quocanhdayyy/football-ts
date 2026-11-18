@@ -89,16 +89,16 @@ erDiagram
 - Xác minh chấn thương có đủ khoảng ngày, thời điểm, người xác minh và nguồn; FREE_AGENT/CONTRACTED phải có ngày hiệu lực và bằng chứng xác minh.
 - Không có hồ sơ xác minh nghĩa là chưa biết; không tự coi cầu thủ tự do hoặc không từng chấn thương. Không tự dựng lại dữ liệu lịch sử từ dữ liệu cũ.
 - AuditLog dùng entityType/entityId để tham chiếu nhiều loại dữ liệu, không có FK đa hình
-  tới mọi bảng; việc ghi log tự động và bảo vệ thao tác log ở tầng ứng dụng chưa triển khai.
+  tới mọi bảng; việc ghi log nội bộ chưa bao phủ toàn bộ thay đổi dữ liệu.
 
 ## Phạm vi API hiện tại
 
 Đã có API Transfer, danh sách Shortlist, các mục ShortlistItem, Notification và ScoringConfig.
-MatchResult có API đọc/xóa lịch sử; POST /api/matching/evaluate tạo điểm nội bộ khi save=true và đủ dữ liệu.
-AuditLog chỉ có API đọc Admin và ghi nội bộ cho thay đổi Transfer/danh sách/ScoringConfig.
+MatchResult có API đọc/xóa lịch sử; POST /api/matching/v3/evaluate tạo điểm nội bộ khi save=true và đủ dữ liệu.
+AuditLog chỉ có API đọc Admin; các luồng ghi nội bộ gồm thay đổi Transfer, danh sách Shortlist, ScoringConfig, Player, MatchingInput, PlayerMarketValueHistory, PlayerDataVerification và tạo MatchResult qua engine V3. Xóa MatchResult chưa ghi audit.
 Chi tiết endpoint và giới hạn xem [API các thực thể](api/README.md#entities).
 Ba bảng bổ sung cho Matching đã có API /market-value-history, /matching-inputs, /player-data-verifications; vị trí phụ nhập qua /players. Chi tiết ở [API các thực thể](api/README.md#entities).
-Đã có engine F/S/R, tổng điểm và xếp hạng qua /api/matching; chưa tự chọn trọng số S/R hoặc nhập dữ liệu mẫu. Bản thử F riêng vẫn không lưu MatchResult. Chưa gửi push, Scheduler, Audit cho toàn bộ master hoặc xóa mềm. Xem [Matching API](api/README.md#matching) và [test F](testing/README.md#financial-fit).
+Backend chỉ dùng Matching V3 tại `/api/matching/v3/*`: tính F/S/R, bốn chiến lược trọng số, lọc, xếp hạng và lưu MatchResult khi đủ dữ liệu, qua bộ lọc và `save=true`. Bản thử vai trò `/api/matching/v3/squad/preview` không lưu lịch sử Matching. Chưa có push, Scheduler, audit cho toàn bộ master hoặc xóa mềm. Xem [Matching V3](api/README.md#matching-v3) và [hướng dẫn test](testing/README.md#thử-chiến-lược-và-matching).
 
 V3 đã có [nền cấu hình và dữ liệu giai đoạn 1](data/README.md#v3-stage-1); `GET /api/matching/v3/template` đọc hợp đồng cấu hình.
 

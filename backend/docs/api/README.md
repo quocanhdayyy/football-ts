@@ -81,7 +81,7 @@ backend luôn kiểm tra quyền, không dựa vào việc frontend ẩn nút.
 
 Chi tiết request/response và giới hạn ở [API các thực thể](README.md#entities).
 
-- POST /api/matching/search: tự lấy ứng viên thuộc bộ dữ liệu nhập 5 giải mùa 2025/2026, chấm và phân trang. Không yêu cầu playerIds, không lưu lịch sử; chưa thêm điều kiện loại theo vị trí/tuổi/phí/lương. Xem [hướng dẫn](README.md#search).
+- POST /api/matching/v3/search: tự lấy ứng viên import trong phạm vi 5 giải của mùa, chấm và phân trang. Không yêu cầu playerIds, không lưu lịch sử; áp dụng điều kiện vị trí, số phút, điểm vai trò và dung sai phí/lương; tuổi/chân thuận/giải là tùy chọn. Xem [hướng dẫn V3](README.md#matching-v3).
 
 ## Entities
 
@@ -186,7 +186,7 @@ GET /api/match-results — lịch sử của mình, Admin xem tất cả; lọc 
 GET /api/match-results/:id — chủ sở hữu/Admin.
 DELETE /api/match-results/:id — chủ sở hữu/Admin, trả 204.
 POST/PATCH không hỗ trợ, trả 405. Không cho client nhập/sửa điểm.
-Engine tạo kết quả qua POST /api/matching/evaluate khi gửi save=true và đủ dữ liệu. Danh sách vẫn rỗng nếu chưa có lần chấm đủ điểm được lưu.
+Engine tạo kết quả qua POST /api/matching/v3/evaluate khi gửi save=true và đủ dữ liệu. Danh sách vẫn rỗng nếu chưa có lần chấm đủ điểm được lưu.
 
 ### AuditLog
 
