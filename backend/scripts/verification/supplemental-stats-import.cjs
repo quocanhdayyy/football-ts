@@ -5,8 +5,6 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { prisma } = require('../../src/config/prisma.ts');
 const { getPlayerStatsById } = require('../../src/services/player-stats.service.ts');
-const { scoreForm } = require('../../src/services/matching/matching-scoring.service.ts');
-const { matchingTemplate } = require('../../src/config/matching-rules.ts');
 const { FIELDS, BASE } = require('../import-supplemental-stats.cjs');
 const { scopeStats, assertProtected } = require('./top5-baseline.cjs');
 const root = path.join(__dirname, '../../data/supplemental-stats');
@@ -56,8 +54,6 @@ const sha = value => crypto.createHash('sha256').update(JSON.stringify(value)).d
     assert(FIELDS.every(f => row[f] !== null), player.name);
     const response = await getPlayerStatsById(row.id);
     assert.equal(response.passAccuracy, Number((row.passesCompleted / row.passesAttempted * 100).toFixed(2)));
-    const form = scoreForm(row, player.position, matchingTemplate().parameters);
-    assert(form.score !== null && form.score.gte(0) && form.score.lte(100), 'Supplemented outfield form can be calculated');
   }
   console.log(`PASS: ${report.rowsUpdated} supplemented rows match source; all other stats and ${Object.keys(before.protectedModels).length} domain tables unchanged; one provenance audit per update; seven star players readable with pass accuracy.`);
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => prisma.$disconnect());

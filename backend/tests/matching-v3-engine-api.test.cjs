@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),app=require('../src/app.ts').default;
 const {prisma}=require('../src/config/prisma.ts'),{createUser}=require('../src/services/user.service.ts');
 const C=require('../src/services/matching/v3/config.ts'),{metricsInput,metricInputHash}=require('../src/services/player-metrics-input.ts');
-const {shiftCalendarMonths:shift}=require('../src/services/matching/matching-scoring.service.ts');
+const {shiftCalendarMonths:shift}=require('../src/services/matching/v3/dates.ts');
 const {evaluationDay}=require('../src/services/matching/v3/engine.ts');
 (async()=>{
  const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
@@ -34,6 +34,29 @@ const {evaluationDay}=require('../src/services/matching/v3/engine.ts');
   }
   const body={playerId:players[2].id,requirementId:req.id,season,roleIds:['POACHER'],configId:config.id,options:{minMinutes:0,minimumRoleScore:0},strategy:'BALANCED'};
   await call(401,'POST','/matching/v3/evaluate',body);await call(409,'POST','/matching/v3/evaluate',body,a);
+  // V1 runtime is gone; legacy data cannot displace the single V3 active config.
+  for(const[method,path]of [['GET','/matching/template'],['POST','/matching/evaluate'],['POST','/matching/rank'],['POST','/matching/search'],['POST','/matching/financial/preview'],['POST','/matching/financial/evaluate'],['POST','/matching/squad/preview'],['GET','/matching/risk/demo'],['POST','/matching/risk/evaluate'],['POST','/matching/risk/preview']]){
+   const r=await fetch(base+path,{method,headers:{Authorization:'Bearer '+a,'Content-Type':'application/json'},...(method==='POST'?{body:'{}'}:{})});assert.equal(r.status,404,path);
+  }
+  await call(409,'POST','/scoring-configs',{...cfg,name:'Rejected legacy '+tag,parameters:{engineVersion:'matching-v1'}},admin);
+  await call(409,'POST','/scoring-configs',{...cfg,name:'Rejected unversioned '+tag,parameters:{}},admin);
+  const legacy=await prisma.scoringConfig.create({data:{...cfg,name:'TEST historical config '+tag,parameters:{engineVersion:'matching-v1'}}});configs.push(legacy.id);
+  const archived=await prisma.matchResult.create({data:{userId:users[1].id,playerId:players[1].id,requirementId:req.id,configId:legacy.id,totalScore:80,financialScore:80,squadScore:80,riskScore:80,criteriaScores:{historical:true},prosCons:{},inputSnapshot:{engineVersion:'matching-v1',historical:true}}});
+  const archive=await call(200,'GET',`/match-results/${archived.id}`,undefined,a);assert.equal(archive.inputSnapshot.engineVersion,'matching-v1');assert.equal(archive.totalScore,'80');
+  await call(404,'GET',`/match-results/${archived.id}`,undefined,b);
+  await call(409,'POST',`/scoring-configs/${legacy.id}/activate`,undefined,admin);
+  assert.equal((await prisma.scoringConfig.findFirst({where:{isActive:true}})).id,activeBefore.id);
+  assert.equal((await call(200,'GET',`/match-results/${archived.id}`,undefined,a)).totalScore,archive.totalScore);
+  await call(404,'GET',`/scoring-configs/${legacy.id}`,undefined,admin);
+  assert(!(await call(200,'GET','/scoring-configs?pageSize=100',undefined,admin)).some(c=>c.id===legacy.id));
+  await assert.rejects(prisma.$transaction(async tx=>{
+   await tx.scoringConfig.updateMany({where:{isActive:true},data:{isActive:false}});
+   await tx.scoringConfig.update({where:{id:legacy.id},data:{isActive:true}});
+  }),e=>String(e.message).includes('scoring_configs_active_v3_only'));
+  await prisma.scoringConfig.updateMany({where:{isActive:true},data:{isActive:false}});
+  await call(409,'POST','/matching/v3/evaluate',{...body,configId:undefined,save:true},a);
+  await call(409,'POST','/matching/v3/evaluate',{...body,configId:undefined,save:true},admin);
+  await prisma.scoringConfig.update({where:{id:activeBefore.id},data:{isActive:true}});
   const first=await call(200,'POST','/matching/v3/evaluate',body,admin);assert(first.complete);near(first.precision.financial,81.05);near(first.precision.risk,88);assert(first.criteria.squad.chosen.roleId==='POACHER');assert(!first.saved);
   for(const strategy of Object.keys(C.strategies)){
    const d=await call(200,'POST','/matching/v3/evaluate',{...body,strategy},admin);near(d.precision.financial,first.precision.financial);near(d.precision.squad,first.precision.squad);near(d.precision.risk,first.precision.risk);
@@ -42,8 +65,8 @@ const {evaluationDay}=require('../src/services/matching/v3/engine.ts');
   for(const patch of [{strategy:'BAD'},{roleIds:['BAD']},{pillarWeights:{financial:0,squad:0,risk:0}},{strategy:'BALANCED',pillarWeights:{financial:1,squad:0,risk:0}},{save:'yes'},{options:{bad:1}}])await call(400,'POST','/matching/v3/evaluate',{...body,...patch},admin);
   await call(200,'POST',`/scoring-configs/${config.id}/activate`,undefined,admin);
   await call(404,'POST','/matching/v3/evaluate',body,b);
-  const saved=await call(200,'POST','/matching/v3/evaluate',{...body,save:true},a);assert(saved.saved);assert(saved.resultId);
-  const history=await call(200,'GET',`/match-results/${saved.resultId}`,undefined,a);assert.equal(history.inputSnapshot.engineVersion,'matching-v3.0.0');near(history.inputSnapshot.weights.squad,.5);
+  const saved=await call(200,'POST','/matching/v3/evaluate',{...body,configId:undefined,save:true},a);assert(saved.saved);assert(saved.resultId);
+  const history=await call(200,'GET',`/match-results/${saved.resultId}`,undefined,a);assert.equal(history.configId,config.id);assert.equal(history.inputSnapshot.engineVersion,'matching-v3.0.0');near(history.inputSnapshot.weights.squad,.5);
   await call(404,'GET',`/match-results/${saved.resultId}`,undefined,b);
   await call(409,'PATCH',`/scoring-configs/${config.id}`,{parameters:cfg.parameters},admin);
   const{playerId, ...common}=body;

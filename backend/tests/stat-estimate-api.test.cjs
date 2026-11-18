@@ -4,8 +4,7 @@ const {prisma}=require('../src/config/prisma.ts');
 const {createUser}=require('../src/services/user.service.ts');
 const {updatePlayerStats}=require('../src/services/player-stats.service.ts');
 const {metricsInput,metricInputHash}=require('../src/services/player-metrics-input.ts');
-const {scoreForm}=require('../src/services/matching/matching-scoring.service.ts');
-const {matchingRules}=require('../src/config/matching-rules.ts');
+const {normalizeCandidate}=require('../src/services/matching/v3/performance.ts');
 (async()=>{
  const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
  let user,player;
@@ -32,12 +31,14 @@ const {matchingRules}=require('../src/config/matching-rules.ts');
   await prisma.player.update({where:{id:player.id},data:{height:185}});
   const stale=await (await fetch(base+'/player-stats/'+stats.id,{headers:{Authorization:'Bearer '+token}})).json();
   assert.equal(stale.data.metrics.stale,true); // A profile correction changes inference inputs too.
-  assert.equal(scoreForm(stats,'ST',matchingRules).score,null); // engine does not silently consume imputation.
+  const inputs=normalizeCandidate({...stats,player:{...player,height:185},estimate,metrics:body.data.metrics},'OBSERVED_ONLY');
+  assert.equal(inputs.metrics.keyPassesPer90,undefined); // Legacy estimate does not become an observed stat.
+  assert.equal(inputs.metrics.expectedGoalsPer90,undefined);
   const corrected=await updatePlayerStats(stats.id,{keyPasses:15});assert.equal(corrected.keyPasses,15);assert.equal(corrected.estimate,null);
   assert.equal(await prisma.playerStatsEstimate.count({where:{statsId:stats.id}}),0);
   assert.equal(corrected.metrics,null);
   assert.equal(await prisma.playerStatsMetrics.count({where:{statsId:stats.id}}),0);
-  console.log('PASS: authenticated API separates observations, estimates and V3 inputs; profile edits flag stale data; stat corrections invalidate both; engine remains observation-only.');
+  console.log('PASS: authenticated API separates observations, estimates and V3 inputs; profile edits flag stale data; stat corrections invalidate both; V3 strict mode rejects estimates.');
  }finally{
   if(player){await prisma.playerStats.deleteMany({where:{playerId:player.id}});await prisma.player.delete({where:{id:player.id}});}
   if(user)await prisma.user.delete({where:{id:user.id}});

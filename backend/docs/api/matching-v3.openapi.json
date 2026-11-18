@@ -3,7 +3,7 @@
   "info": {
     "title": "Football Transfer — Matching V3 & FE workflow",
     "version": "matching-v3.0.0",
-    "description": "Hợp đồng của sáu API Matching V3 và các bước kết nối FE. Không phải danh mục CRUD toàn bộ backend. Bearer token dạng opaque, không phải JWT. Điểm live là number/null; Decimal trong CRUD/lịch sử là string. Null là chưa biết, không phải 0. Chọn nguồn giá nếu có nhiều nguồn; dữ liệu thiếu vẫn HTTP 200. Bản mô tả được sinh từ mã nguồn, không chứa token hay tài khoản mẫu thật."
+    "description": "Hợp đồng của sáu API Matching V3 và các bước kết nối FE. Không phải danh mục CRUD toàn bộ backend. Chỉ có engine V3; endpoint V1 đã gỡ. Bearer token dạng opaque, không phải JWT. Điểm live là number/null; Decimal trong CRUD/lịch sử là string. Null là chưa biết, không phải 0. Chọn nguồn giá nếu có nhiều nguồn; dữ liệu thiếu vẫn HTTP 200. Bản mô tả được sinh từ mã nguồn, không chứa token hay tài khoản mẫu thật."
   },
   "servers": [
     {
@@ -1364,7 +1364,7 @@
     "/match-results": {
       "get": {
         "operationId": "history",
-        "summary": "Lịch sử; điểm Decimal là chuỗi, dữ liệu có thể thuộc V1 hoặc V3",
+        "summary": "Lịch sử; điểm Decimal là chuỗi, snapshot cũ được giữ nguyên",
         "tags": [
           "Matching V3"
         ],
@@ -2623,8 +2623,7 @@
               "id": {
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 2147483647,
-                "nullable": true
+                "maximum": 2147483647
               },
               "name": {
                 "type": "string"
@@ -2918,8 +2917,7 @@
               "id": {
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 2147483647,
-                "nullable": true
+                "maximum": 2147483647
               },
               "name": {
                 "type": "string"

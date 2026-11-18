@@ -2,21 +2,20 @@ import { prisma } from "../../../config/prisma";
 import { Prisma } from "../../../generated/prisma/client";
 import { ApiError, requireFound } from "../../../utils/api-handler";
 import { metricInputHash } from "../../player-metrics-input";
-import { ENGINE_VERSION, IMPLEMENTATION_STAGE, SCORING_AVAILABLE, BUILTIN_NAME, matrixVersion, roles, builtinConfig, validateV3Config } from "./config";
+import { ENGINE_VERSION, IMPLEMENTATION_STAGE, SCORING_AVAILABLE, matrixVersion, roles, validateV3Config } from "./config";
 import type { V3Config, DataMode } from "./config";
 import { normalizeCandidate, buildReference, scoreVector, eligibility, record } from "./performance";
 
 export const ROLE_ALGORITHM = "role-scores-v3-stage2.1";
 export const asJson = (value: unknown): Prisma.InputJsonObject => JSON.parse(JSON.stringify(value));
 export async function resolveConfig(tx: Prisma.TransactionClient, id: number | undefined, admin: boolean) {
-  const item = id === undefined
-    ? await tx.scoringConfig.findFirst({ where: { OR: [{ isActive: true }, { name: BUILTIN_NAME, version: 1 }], parameters: { path: ["engineVersion"], equals: ENGINE_VERSION } }, orderBy: { isActive: "desc" } })
-    : await tx.scoringConfig.findFirst({ where: { id, ...(admin ? {} : { OR: [{ isActive: true }, { name: BUILTIN_NAME, version: 1 }] }) } });
-  if (!item) { if (id === undefined) return builtinConfig(); throw new ApiError(409, "Không có cấu hình V3 được phép sử dụng."); }
-  const config = validateV3Config(item);
-  if (!admin && !item.isActive && config.hash !== builtinConfig().hash) throw new ApiError(409, "Cấu hình tùy chỉnh chưa được phép dùng.");
-  return config;
+  const item = await tx.scoringConfig.findFirst({ where: {
+    ...(id === undefined ? { isActive: true } : { id, ...(admin ? {} : { isActive: true }) }),
+  } });
+  if (!item) throw new ApiError(409, "Chưa có cấu hình V3 active được phép sử dụng. Chạy migration hoặc nhờ Admin kích hoạt cấu hình V3.");
+  return { ...validateV3Config(item), id: item.id };
 }
+
 export type Dataset = { candidates: ReturnType<typeof normalizeCandidate>[]; reference: ReturnType<typeof buildReference>; configHash: string; datasetHash: string };
 export async function loadDataset(tx: Prisma.TransactionClient, season: string, config: V3Config, mode: DataMode): Promise<Dataset> {
   // Hash actual JSON values too: a direct SQL edit cannot silently reuse an old cache.

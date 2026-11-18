@@ -44,7 +44,7 @@ const baseResult = {
 const metaResult = {
   engineVersion: { type: "string", enum: [ENGINE_VERSION] }, implementationStage: { type: "integer", enum: [IMPLEMENTATION_STAGE] },
   requirementId: id, season, evaluatedAt: date,
-  config: obj({ id: { ...id, nullable: true }, name: text, version: integer, hash: text, pillarWeights: ref("Weights") }),
+  config: obj({ id, name: text, version: integer, hash: text, pillarWeights: ref("Weights") }),
   options: ref("Options"), reference: obj({ datasetHash: text, configHash: text, count: integer }),
 };
 const exampleRequest = { playerId: 1700, requirementId: 42, season: "2025/2026", roleIds: ["POACHER"], strategy: "BALANCED", options: { dataMode: "PROTOTYPE", feeTolerance: .2, wageTolerance: .5 }, save: false };
@@ -102,7 +102,7 @@ const paths: Record<string, unknown> = {
   "/matching-inputs": { get: { ...operation("quotes", "Đọc phí/lương dự kiến theo nhu cầu và cầu thủ", { ...envelope({ type: "array", items: json }), properties: { ...(envelope(json).properties as object), data: { type: "array", items: json }, meta: json } }), parameters: [...paging, { name: "playerId", in: "query", schema: id }, { name: "requirementId", in: "query", schema: id }] },
     post: operation("createQuote", "Tạo báo giá theo nhu cầu; một bản ghi cho mỗi cặp", envelope(json), ref("QuoteInput"), 201) },
   "/matching-inputs/{id}": { parameters: [pathId], patch: operation("updateQuote", "Sửa phí/lương dự kiến theo ID báo giá", envelope(json), { description: quotePolicy, minProperties: 1, ...obj({ estimatedFee: nullableMoney, expectedSalaryPerYear: nullableMoney, feeSource: { ...text, maxLength: 255, nullable: true }, salarySource: { ...text, maxLength: 255, nullable: true } }, [], true) }) },
-  "/match-results": { get: { ...operation("history", "Lịch sử; điểm Decimal là chuỗi, dữ liệu có thể thuộc V1 hoặc V3", envelope({ type: "array", items: json })), parameters: [...paging, { name: "playerId", in: "query", schema: id }, { name: "requirementId", in: "query", schema: id }] } },
+  "/match-results": { get: { ...operation("history", "Lịch sử; điểm Decimal là chuỗi, snapshot cũ được giữ nguyên", envelope({ type: "array", items: json })), parameters: [...paging, { name: "playerId", in: "query", schema: id }, { name: "requirementId", in: "query", schema: id }] } },
   "/match-results/{id}": { parameters: [pathId], get: operation("historyDetail", "Snapshot của lần tính; xem inputSnapshot.engineVersion", envelope(json)) },
   "/shortlists": { get: operation("shortlistItems", "Đọc các mục đã lưu trong phạm vi tài khoản", envelope({ type: "array", items: json })), post: operation("addShortlistItem", "Lưu cầu thủ khi người dùng chọn; trùng trong cùng danh sách trả 409", envelope(json), ref("ShortlistInput"), 201) },
   "/shortlists/{id}": { parameters: [pathId], patch: operation("updateShortlistItem", "Sửa ghi chú/ưu tiên/nhu cầu của mục", envelope(json), obj({ requirementId: { ...id, nullable: true }, note: { ...text, nullable: true, maxLength: 255 }, priority: { type: "integer", minimum: 1 } }, [], true)), delete: { operationId: "removeShortlistItem", summary: "Xóa mục shortlist", responses: { "204": { description: "Đã xóa, không có body" }, ...errors } } },
@@ -110,7 +110,7 @@ const paths: Record<string, unknown> = {
 
 export const matchingV3OpenApi = {
   openapi: "3.0.3", info: { title: "Football Transfer — Matching V3 & FE workflow", version: ENGINE_VERSION,
-    description: "Hợp đồng của sáu API Matching V3 và các bước kết nối FE. Không phải danh mục CRUD toàn bộ backend. Bearer token dạng opaque, không phải JWT. Điểm live là number/null; Decimal trong CRUD/lịch sử là string. Null là chưa biết, không phải 0. Chọn nguồn giá nếu có nhiều nguồn; dữ liệu thiếu vẫn HTTP 200. Bản mô tả được sinh từ mã nguồn, không chứa token hay tài khoản mẫu thật." },
+    description: "Hợp đồng của sáu API Matching V3 và các bước kết nối FE. Không phải danh mục CRUD toàn bộ backend. Chỉ có engine V3; endpoint V1 đã gỡ. Bearer token dạng opaque, không phải JWT. Điểm live là number/null; Decimal trong CRUD/lịch sử là string. Null là chưa biết, không phải 0. Chọn nguồn giá nếu có nhiều nguồn; dữ liệu thiếu vẫn HTTP 200. Bản mô tả được sinh từ mã nguồn, không chứa token hay tài khoản mẫu thật." },
   servers: [{ url: "http://localhost:3000/api", description: "Đổi URL này thành backend của bạn" }],
   security: [{ bearerAuth: [] }], tags: [{ name: "Matching V3" }, { name: "FE workflow" }], paths,
   components: { responses: errorResponses, securitySchemes: { bearerAuth: { type: "http", scheme: "bearer", description: "accessToken từ POST /auth/login" } }, schemas },

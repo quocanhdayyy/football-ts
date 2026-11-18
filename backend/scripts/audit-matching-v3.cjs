@@ -9,7 +9,7 @@ const {inspectInputs}=require('../src/services/matching/v3/input-readiness.ts');
 const {injuryScore,priceScore,resaleAge}=require('../src/services/matching/v3/risk.ts');
 const {verifiedFreeAgent}=require('../src/services/matching/v3/financial.ts');
 const {evaluationDay}=require('../src/services/matching/v3/engine.ts');
-const {playerAge,shiftCalendarMonths}=require('../src/services/matching/matching-scoring.service.ts');
+const {playerAge,shiftCalendarMonths}=require('../src/services/matching/v3/dates.ts');
 const group=rows=>{const m=new Map();for(const r of rows){const v=m.get(r.playerId)||[];v.push(r);m.set(r.playerId,v)}return m};
 async function audit(season){
  return prisma.$transaction(async tx=>{

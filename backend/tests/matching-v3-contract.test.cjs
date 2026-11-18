@@ -13,6 +13,7 @@ test('portable OpenAPI stays in sync;local references resolve;all operations sec
  for(const action of ['evaluate','rank','search'])assert(spec.paths['/matching/v3/'+action].post);
  assert(!spec.components.schemas.SearchRequest.properties.playerIds);assert(!spec.components.schemas.RankRequest.properties.save);
  assert.equal(spec.components.schemas.Evaluation.properties.riskScore.nullable,true);
+ assert.equal(spec.components.schemas.Evaluation.properties.config.properties.id.nullable,undefined);
 });
 test('affordability sanity:bounded,monotone,continuous at cap;does not invent score for missing amounts',()=>{
  for(const[cap,tau,a,b]of [[60,.2,.9,.3],[10,.5,.96,.36],[.3,.5,.9,.3]]){

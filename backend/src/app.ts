@@ -19,7 +19,7 @@ import scoringConfigRoutes from "./routes/scoring-config.routes";
 import matchResultRoutes from "./routes/match-result.routes";
 import auditLogRoutes from "./routes/audit-log.routes";
 import { marketValueHistoryRoutes, matchingInputRoutes, playerDataVerificationRoutes } from "./routes/matching-data.routes";
-import matchingRoutes from "./routes/matching.routes";
+import matchingRoutes from "./routes/matching-v3.routes";
 
 const app = express();
 
@@ -52,7 +52,7 @@ app.use("/api/audit-logs", auditLogRoutes);
 app.use("/api/market-value-history", marketValueHistoryRoutes);
 app.use("/api/matching-inputs", matchingInputRoutes);
 app.use("/api/player-data-verifications", playerDataVerificationRoutes);
-app.use("/api/matching", matchingRoutes);
+app.use("/api/matching/v3", matchingRoutes);
 const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, next) => {
   if (res.headersSent) { next(error); return; }
   const type = error && typeof error === "object" && "type" in error ? error.type : undefined;

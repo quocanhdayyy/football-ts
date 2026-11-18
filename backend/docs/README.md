@@ -4,7 +4,6 @@
 |---|---|
 | Kết nối frontend, đăng nhập, gọi API, tính và tìm Matching | [API backend](api/README.md) |
 | Xem database và quan hệ giữa các bảng | [ERD](erd.md) |
-| Đối chiếu công thức Matching V1 còn giữ ở endpoint cũ | [Đặc tả Matching V1](matching-engine-spec.md) |
 | Xem báo cáo V3 đã thống nhất | [Matching Engine V3](Matching_Engine_V3.docx) |
 | Xem tiến độ triển khai V3, đầu vào và điểm vai trò | [Tiến độ V3 và F/S/R](data/README.md#v3-stage-3) |
 | Xem phạm vi 5 giải, nguồn, nhập dữ liệu và cách ước tính | [Dữ liệu cầu thủ](data/README.md) |
@@ -20,4 +19,4 @@ Trong mỗi tài liệu có mục lục để đi thẳng vào phần cần dùn
 
 Dữ liệu DEMO không phải dữ liệu thật. Bộ demo PostgreSQL cũ và các ID đã nghỉ dùng; kiểm thử V3 hiện dùng fixture TEST tự dọn. Ước tính thống kê nằm riêng; V3 chỉ dùng chúng trong chế độ PROTOTYPE có nhãn.
 
-Giai đoạn 4 V3 hoàn thành [bàn giao FE và kiểm chứng kỹ thuật](data/README.md#v3-stage-4), có [OpenAPI](api/matching-v3.openapi.json), bộ test toàn luồng và audit chỉ đọc. F/S/R, xếp hạng, lịch sử và form `/login` đã có từ giai đoạn 3. Công thức V1 vẫn ở các endpoint cũ. Dữ liệu thực còn thiếu tài chính/y tế sẽ giữ kết quả chưa hoàn chỉnh.
+Giai đoạn 4 V3 hoàn thành [bàn giao FE và kiểm chứng kỹ thuật](data/README.md#v3-stage-4), có [OpenAPI](api/matching-v3.openapi.json), bộ test toàn luồng và audit chỉ đọc. F/S/R, xếp hạng, lịch sử và form `/login` đã có từ giai đoạn 3. Chỉ còn engine V3; endpoint và form V1 đã gỡ. Dữ liệu thực còn thiếu tài chính/y tế sẽ giữ kết quả chưa hoàn chỉnh.

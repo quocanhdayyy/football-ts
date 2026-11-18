@@ -53,7 +53,7 @@ Trong 2.684 cầu thủ nguồn, mức độ có **năm trường bổ sung** (t
 - **120 người có một phần.**
 - **379 người chưa có cả năm trường.**
 
-Ô quan sát chưa biết giữ `null`, không đổi thành 0. API thống kê trả thêm `estimate` riêng cho 499 người; đây là 2.107 giá trị ước tính, không phải thống kê thật ; engine V1 giữ cách tính cũ, còn V3 dùng metrics có nhãn theo chế độ dữ liệu. Có đủ thống kê không có nghĩa đủ mọi đầu vào F/S/R. Trong nhóm này còn 121 người chưa có giá có ngày, 36 người thiếu chiều cao và 33 người thiếu chân thuận.
+Ô quan sát chưa biết giữ `null`, không đổi thành 0. API thống kê trả thêm `estimate` riêng cho 499 người; đây là 2.107 giá trị ước tính, không phải thống kê thật ; engine V3 dùng metrics có nhãn theo chế độ dữ liệu. Có đủ thống kê không có nghĩa đủ mọi đầu vào F/S/R. Trong nhóm này còn 121 người chưa có giá có ngày, 36 người thiếu chiều cao và 33 người thiếu chân thuận.
 
 ### Xem và test
 
@@ -106,7 +106,7 @@ npm run data:enrich:import -- --actor-id 15 --apply
 
 Dùng ID admin của máy tương ứng. Transfermarkt raw vẫn là bộ snapshot rộng của nhà cung cấp nhưng bước prepare chỉ chọn năm giải. Importer từ chối bundle tám giải để tránh nhập lại các giải đã loại. Football Today chỉ tải năm giải; cache của ba giải cũ được bỏ qua khi chuẩn bị dữ liệu.
 
-Nguồn thông báo ngừng cập nhật ở tháng 7/2026; từng bảng có mốc dừng khác nhau. Giữ checksum snapshot và độ tin cậy `UNKNOWN`, không gắn `OFFICIAL`. Không dùng FPL-Core-Insights hoặc giá Fantasy. Vị trí tiếp tục được chuẩn hóa thành ST/LW/RW/CDM/CAM/CM/CB/RB/LB/GK; Form V1 chưa có công thức phong độ GK; V3 đã có hai vai trò thủ môn theo ma trận.
+Nguồn thông báo ngừng cập nhật ở tháng 7/2026; từng bảng có mốc dừng khác nhau. Giữ checksum snapshot và độ tin cậy `UNKNOWN`, không gắn `OFFICIAL`. Không dùng FPL-Core-Insights hoặc giá Fantasy. Vị trí tiếp tục được chuẩn hóa thành ST/LW/RW/CDM/CAM/CM/CB/RB/LB/GK; V3 có hai vai trò thủ môn theo ma trận.
 
 ### Việc thu phạm vi đã thực hiện
 
@@ -126,9 +126,9 @@ npm run verify:top5-scope
 npm run verify:data-import
 npm run verify:data-stats
 npm run verify:data-enrich
-npm run test:matching
-npm run test:squad-preview
-npm run test:risk-preview
+npm run test:matching-v3-performance
+npm run test:matching-v3-squad-api
+npm run test:matching-v3-financial-risk
 npx tsc --noEmit
 ```
 
@@ -299,7 +299,7 @@ npm run verify:data-enrich
 
 ID admin trên là ID máy hiện tại. Raw HTML/CSV, bundle, checkpoint và báo cáo chi tiết nằm trong `data/stats-enrichment/` và được gitignore. [Báo cáo đã nhập](../archive/reports/stats-enrichment-report.json) chứa số lượng thực tế; API PlayerStats hiện có đọc trực tiếp các trường vừa bổ sung.
 
-Đã chạy thành công `test:data-enrich`, `verify:data-enrich`, `verify:data-import` (gồm kiểm tra HTTP với Scout), `verify:data-stats`, `test:matching` và `tsc --noEmit`. Nhập lại cùng bundle: **0 thay đổi**.
+Đã chạy thành công `test:data-enrich`, `verify:data-enrich`, `verify:data-import` (gồm kiểm tra HTTP với Scout), `verify:data-stats`, `test:matching-v3-performance` và `tsc --noEmit`. Nhập lại cùng bundle: **0 thay đổi**.
 
 ## Estimation
 
@@ -365,7 +365,7 @@ Thay 15 bằng admin thực tế. Bằng chứng cá nhân nằm trong `data/mai
 
 ## Đầu vào thống kê V3
 
-Bộ chuẩn bị ngày 11/11/2026, kiểm tra lại ngày 12/11/2026, gồm **2.684 cầu thủ mùa 2025/2026**, trong phạm vi 5 giải hiện có. Lưu ở bảng `player_stats_metrics`, không thay thống kê quan sát và 499 hồ sơ estimate cơ bản. Bản thử điểm vai trò V3 giai đoạn 2 đã dùng các đầu vào này; engine V1 hiện có vẫn giữ cách tính cũ. Chưa bổ sung hợp đồng, lương hoặc lịch sử chấn thương trong bước này.
+Bộ chuẩn bị ngày 11/11/2026, kiểm tra lại ngày 12/11/2026, gồm **2.684 cầu thủ mùa 2025/2026**, trong phạm vi 5 giải hiện có. Lưu ở bảng `player_stats_metrics`, không thay thống kê quan sát và 499 hồ sơ estimate cơ bản. Bản thử điểm vai trò V3 giai đoạn 2 đã dùng các đầu vào này; Engine V1 đã được gỡ khỏi backend. Chưa bổ sung hợp đồng, lương hoặc lịch sử chấn thương trong bước này.
 
 | Độ phủ | Số lượng |
 | --- | ---: |
@@ -415,7 +415,7 @@ npm run test:estimation-api
 
 Nguồn tải được ghim checksum trong script fetch; thay đổi nội dung phải đối chiếu lại. Import có transaction, backup bảng metrics cũ và AuditLog; chạy lại cùng đầu vào trả 0 thay đổi. Cache/báo cáo trong `data/v3-metrics/` được gitignore. Sửa hồ sơ nền sẽ khiến `metrics.stale=true`; sửa thống kê qua API xóa bộ suy luận để tránh dùng giá trị cũ.
 
-Trong mục test API hiện có, chọn **Thống kê cầu thủ**, nhập **1621** để xem Haaland. JSON trả `data.metrics.values`, ví dụ `expectedGoalsPer90.value`, `progressivePassesPer90.status` và `basis`. ID cầu thủ của Haaland vẫn là **1700**. Form S cũ dùng V1; form **Matching V3** riêng đã dùng metrics, percentile và ma trận vai trò.
+Trong mục test API hiện có, chọn **Thống kê cầu thủ**, nhập **1621** để xem Haaland. JSON trả `data.metrics.values`, ví dụ `expectedGoalsPer90.value`, `progressivePassesPer90.status` và `basis`. ID cầu thủ của Haaland vẫn là **1700**. Form **Matching V3** dùng metrics, percentile và ma trận vai trò.
 
 
 <a id="v3-stage-1"></a>
@@ -527,7 +527,7 @@ Nhóm lân cận có hướng theo V3; chỉ đủ điều kiện nếu đã xá
 
 Response có tên cầu thủ, phút, `roles`, `metricsByGroup` chứa từng percentile/trọng số, counts/mean tham chiếu, lý do thiếu, `estimatedWeight`, cờ vị trí, cap và cache. `PROTOTYPE` cho phép ước tính trong cả đầu vào và tập tham chiếu, luôn có cảnh báo; `OBSERVED_ONLY` loại ước tính theo từng chỉ số. Số người tham chiếu tổng không phải số người dùng cho từng percentile: xem `referenceCount` ở mỗi chỉ số. Các giá trị số giữ đủ độ chính xác; UI mới làm tròn để hiển thị.
 
-Cấu hình mặc định đã công bố dùng được khi chưa active. Admin có thể thử cấu hình V3 riêng bằng configId; Scout chỉ dùng bản mặc định đúng template hoặc cấu hình active được phép. Từ giai đoạn 3, `scoringAvailable=true`, `roleScoringAvailable=true`; Admin có thể kích hoạt V3. Khi không chỉ định configId, engine ưu tiên cấu hình V3 active, nếu không có thì dùng bản mặc định đã công bố.
+Cấu hình mặc định đã công bố dùng được khi chưa active. Admin có thể thử cấu hình V3 riêng bằng configId; Scout chỉ dùng cấu hình active. Từ giai đoạn 3, `scoringAvailable=true`, `roleScoringAvailable=true`; Admin có thể kích hoạt V3. Khi không chỉ định configId, engine lấy cấu hình V3 active trong DB; thiếu active trả 409.
 
 Cache `RoleScoreSnapshot` gắn thống kê, chế độ, chính sách tính, ma trận thật và fingerprint dữ liệu của toàn mùa. Fingerprint kiểm tra cả JSON thực tế, không chỉ sourceHash. Sửa chỉ số, hồ sơ, nguồn hoặc tập tham chiếu sẽ làm cache cũ không hợp lệ. Cache không phải MatchResult; preview và rebuild không ghi lịch sử Matching, không sửa các quan sát gốc.
 
@@ -550,7 +550,7 @@ Trên `/login`, mục **Matching V3 → Thử điểm vai trò V3** cho nhập I
 
 ## V3 giai đoạn 3 — F/S/R, lọc và xếp hạng
 
-Hoàn thành ngày 17/11/2026. Engine `matching-v3.0.0` có namespace riêng `/api/matching/v3`; không đổi công thức V1, không tự active cấu hình và không sinh thêm dữ liệu cầu thủ. API và form test cơ bản được làm cùng giai đoạn này để kiểm chứng toàn luồng.
+Hoàn thành ngày 17/11/2026. Engine `matching-v3.0.0` có namespace riêng `/api/matching/v3`; không sinh thêm dữ liệu cầu thủ. API và form test cơ bản được làm cùng giai đoạn này để kiểm chứng toàn luồng.
 
 ### Financial F
 
@@ -678,3 +678,10 @@ Có 26.699 ô DERIVED, 19.137 ô ESTIMATED, 6 ô OBSERVED và 142 ô MISSING tro
 Các kiểm tra đối chiếu snapshot import nằm trong `scripts/verification/`, chạy bằng `verify:data-import`, `verify:data-stats`, `verify:data-enrich`, `verify:top5-scope`. Chúng chỉ dùng khi có đúng bộ dữ liệu/checkpoint của lần import tương ứng; không chạy trong `npm test` hoặc trên DB trống. Báo cáo JSON lịch sử vẫn giữ trong archive; audit V3 mới là lệnh đọc độ phủ hiện tại.
 
 Đã chặn việc suy ra phí 0 từ định giá 0: giá trị thị trường không dương không xác nhận cầu thủ tự do. Fallback phí dùng Decimal và vẫn chỉ cho phép PROTOTYPE. Cầu thủ tự do cần nguồn đăng ký, ngày xác minh hợp lệ và không có hợp đồng ACTIVE. Công thức điểm đã chốt giữ nguyên.
+
+
+### Chỉ giữ Matching V3 từ ngày 18/11/2026
+
+Đã gỡ toàn bộ engine, route, form preview/demo, cấu hình mã nguồn và test tính điểm V1. Các mô tả triển khai giai đoạn trước ở trên là lịch sử; hiện FE chỉ gọi `/api/matching/v3/*`.
+
+Migration retire_matching_v1 giữ lại snapshot/kết quả đã lưu và các hàng config cũ phục vụ lịch sử, tắt active của engine khác, tạo/chọn V3 mặc định nếu chưa có V3 active. DB vẫn có một active duy nhất và bổ sung CHECK chỉ cho V3 active. API không nhận cấu hình V1/unversioned; không fallback về config trong RAM. Tiện ích ngày/tháng dùng chung đã chuyển sang v3/dates.ts, không còn phụ thuộc công thức V1.

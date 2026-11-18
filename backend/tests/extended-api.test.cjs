@@ -52,7 +52,7 @@ const {createUser}=require('../src/services/user.service.ts');
   assert.equal((await call('GET','/notifications?unread=true',undefined,a)).body.meta.total,0);
   assert.equal((await call('PATCH',`/notifications/${nid}`,{content:'tampered'},a)).status,400);
   assert.equal((await call('DELETE',`/notifications/${nid}`,undefined,a)).status,204);
-  const config={name:`Test-${tag}`,version:1,financialWeight:0.4,squadWeight:0.4,riskWeight:0.2,criteriaWeights:{financial:{fee:0.45,salary:0.35,contract:0.2},squad:{position:0.5,age:0.3,minutes:0.2},risk:{injury:0.6,resale:0.4}},parameters:{test:true}};
+  const config={...require('../src/services/matching/v3/config.ts').v3Template(),name:`Test-${tag}`};
   assert.equal((await call('POST','/scoring-configs',config,a)).status,403);
   assert.equal((await call('POST','/scoring-configs',{...config,riskWeight:0.3},admin)).status,400);
   assert.equal((await call('POST','/scoring-configs',{...config,criteriaWeights:{financial:{fee:0.5}}},admin)).status,400);

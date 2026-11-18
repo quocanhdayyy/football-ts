@@ -1,8 +1,7 @@
 import { prisma } from "../../../config/prisma";
 import { Prisma } from "../../../generated/prisma/client";
 import { ApiError, ownerWhere, requireFound } from "../../../utils/api-handler";
-import { playerAge, shiftCalendarMonths } from "../matching-scoring.service";
-import { remainingContractMonths } from "../financial-scoring.service";
+import { playerAge, shiftCalendarMonths, remainingContractMonths } from "./dates";
 import { writeAudit } from "../../audit-log.service";
 import type { AuditContext } from "../../audit-log.service";
 import { ENGINE_VERSION, IMPLEMENTATION_STAGE, matrixVersion, roles as catalog, positionGroup, strategies } from "./config";
@@ -26,7 +25,6 @@ async function evaluateBatch(tx: Prisma.TransactionClient, input: MatchingInputV
   if (requirement.budget.toNumber() <= 0 || requirement.salaryLimit.toNumber() <= 0) throw new ApiError(400, "Ngân sách và trần lương V3 phải lớn hơn 0.");
   if (input.roleIds.some(id => catalog.find(r => r.id === id)?.group !== positionGroup[requirement.position])) throw new ApiError(400, "Vai trò phải thuộc nhóm vị trí CLB cần.");
   const config = await resolveConfig(tx, input.configId, ownerId === undefined), weights = input.pillarWeights ?? (input.strategy ? strategies[input.strategy] : config.pillarWeights);
-  if (save && config.id === null) throw new ApiError(409, "Cần lưu cấu hình V3 trước khi lưu kết quả Matching.");
   if (save) await tx.$queryRaw`SELECT id FROM scoring_configs WHERE id=${config.id} FOR SHARE`;
   const now = new Date(), asOf = evaluationDay(now), data = await loadDataset(tx, input.season, config, input.options.dataMode);
   const players = ids ? await tx.player.findMany({ where: { id: { in: ids } }, orderBy: { id: "asc" } }) : data.candidates.filter(c => c.inScope).map(c => c.row.player);

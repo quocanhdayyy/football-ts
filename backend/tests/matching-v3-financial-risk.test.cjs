@@ -1,7 +1,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {Prisma}=require('../src/generated/prisma/client.ts'),C=require('../src/services/matching/v3/config.ts');
 const F=require('../src/services/matching/v3/financial.ts'),R=require('../src/services/matching/v3/risk.ts');
-const {shiftCalendarMonths:shift}=require('../src/services/matching/matching-scoring.service.ts');
+const {shiftCalendarMonths:shift}=require('../src/services/matching/v3/dates.ts');
 const near=(a,b)=>assert(Math.abs(a-b)<1e-8,`${a} != ${b}`),config=C.builtinConfig(),options=C.parseOptions(),settings=config.settings,day=new Date('2026-11-17T00:00:00Z');
 test('fee V3 half75/cap60,wage half78/cap60,continuous overage and tolerance boundaries',()=>{
  const fee=(n,t=.2)=>F.affordability(n,60,t,.9,.3),wage=n=>F.affordability(n,10,.5,.96,.36);
@@ -60,4 +60,17 @@ test('free agent requires current dated evidence,source,and no active contract',
  assert(!F.verifiedFreeAgent(v,true,day,day));
  assert(!F.verifiedFreeAgent({...v,registrationAsOf:shift(day,-1)},false,day,day));
  assert(!F.verifiedFreeAgent({...v,registrationVerifiedAt:new Date('2027-01-01')},false,day,day));
+});
+test('V3 calendar helpers retain leap-day/month-end and fractional-contract behavior',()=>{
+ const {shiftCalendarMonths,remainingContractMonths,playerAge}=require('../src/services/matching/v3/dates.ts');
+ const date=s=>new Date(s+'T00:00:00Z');
+ assert.equal(shiftCalendarMonths(date('2024-02-29'),12).toISOString().slice(0,10),'2025-02-28');
+ assert.equal(shiftCalendarMonths(date('2025-03-31'),-1).toISOString().slice(0,10),'2025-02-28');
+ near(remainingContractMonths(date('2025-01-31'),date('2025-02-28')).toNumber(),1);
+ near(remainingContractMonths(date('2025-01-31'),date('2025-03-15')).toNumber(),1+15/31);
+ near(remainingContractMonths(date('2025-01-31'),date('2025-02-15')).toNumber(),15/28);
+ near(remainingContractMonths(date('2025-01-31'),date('2025-01-01')).toNumber(),0);
+ assert.throws(()=>remainingContractMonths(new Date('invalid'),date('2025-01-01')));
+ assert.equal(playerAge(date('2000-11-18'),date('2026-11-17')),25);assert.equal(playerAge(date('2000-11-18'),date('2026-11-18')),26);
+ assert.equal(playerAge(date('2027-01-01'),date('2026-11-18')),null);
 });

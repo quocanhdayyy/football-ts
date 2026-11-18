@@ -3,28 +3,21 @@ import { Prisma } from "../../generated/prisma/client";
 import { ApiError } from "../../utils/api-handler";
 import { writeAudit } from "../audit-log.service";
 import type { AuditContext } from "../audit-log.service";
-import { validateMatchingConfig } from "./matching-config";
 import { validateV3Config, ENGINE_VERSION } from "./v3/config";
-import type { ScoringConfig } from "../../generated/prisma/client";
-const validateVersioned = (item: ScoringConfig) => {
-  const p = item.parameters;
-  if (p && typeof p === "object" && !Array.isArray(p) && Object.hasOwn(p, "engineVersion")) {
-    if (p.engineVersion === ENGINE_VERSION) validateV3Config(item); else validateMatchingConfig(item);
-  }
-};
+const v3Where = { parameters: { path: ["engineVersion"], equals: ENGINE_VERSION } };
 
 export type ConfigInput = {
   name: string; version: number; financialWeight: Prisma.Decimal; squadWeight: Prisma.Decimal; riskWeight: Prisma.Decimal;
   criteriaWeights: Prisma.InputJsonObject; parameters: Prisma.InputJsonObject;
 };
 export const listConfigs = (skip: number, take: number) => prisma.$transaction([
-  prisma.scoringConfig.findMany({ skip, take, orderBy: { id: "desc" } }), prisma.scoringConfig.count(),
+  prisma.scoringConfig.findMany({ where: v3Where, skip, take, orderBy: { id: "desc" } }), prisma.scoringConfig.count({ where: v3Where }),
 ]);
-export const findConfig = (id: number) => prisma.scoringConfig.findUnique({ where: { id } });
-export const activeConfig = () => prisma.scoringConfig.findFirst({ where: { isActive: true } });
+export const findConfig = (id: number) => prisma.scoringConfig.findFirst({ where: { id, ...v3Where } });
+export const activeConfig = () => prisma.scoringConfig.findFirst({ where: { isActive: true, ...v3Where } });
 export const createConfig = (data: ConfigInput, context: AuditContext) => prisma.$transaction(async tx => {
   const item = await tx.scoringConfig.create({ data });
-  validateVersioned(item);
+  validateV3Config(item);
   await writeAudit(tx, context, "ScoringConfig", item.id, "CREATE", undefined, item); return item;
 });
 export const updateConfig = (id: number, data: Partial<ConfigInput>, context: AuditContext) => prisma.$transaction(async tx => {
@@ -33,12 +26,12 @@ export const updateConfig = (id: number, data: Partial<ConfigInput>, context: Au
   const weights = { ...old, ...data };
   if (!weights.financialWeight.add(weights.squadWeight).add(weights.riskWeight).equals(1)) throw new ApiError(400, "Tổng trọng số ba trụ cột phải bằng 1.");
   const item = await tx.scoringConfig.update({ where: { id }, data });
-  validateVersioned(item);
+  validateV3Config(item);
   await writeAudit(tx, context, "ScoringConfig", id, "UPDATE", old, item); return item;
 }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 export const activateConfig = (id: number, context: AuditContext) => prisma.$transaction(async tx => {
   const target = await tx.scoringConfig.findUniqueOrThrow({ where: { id } });
-  validateVersioned(target);
+  validateV3Config(target);
   const previous = await tx.scoringConfig.findMany({ where: { isActive: true, id: { not: id } } });
   await tx.scoringConfig.updateMany({ where: { isActive: true, id: { not: id } }, data: { isActive: false } });
   for (const old of previous) await writeAudit(tx, context, "ScoringConfig", old.id, "UPDATE", old, { ...old, isActive: false });

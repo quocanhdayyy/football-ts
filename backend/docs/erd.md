@@ -75,7 +75,7 @@ erDiagram
 - Không lưu trùng cầu thủ/nhu cầu trong cùng danh sách; cùng cầu thủ có thể ở các danh sách khác nhau.
 - Không gửi trùng một Notification eventKey cho một User.
 - Tổng trọng số ba trụ cột bằng 1, mỗi trọng số thuộc [0,1]; version >= 1.
-- Tối đa một ScoringConfig đang active. Không sửa tham số của phiên bản đã có MatchResult;
+- Tối đa một ScoringConfig V3 đang active; CHECK chặn active của cấu hình engine khác. Không sửa tham số của phiên bản đã có MatchResult;
   được phép đổi trạng thái active, hoặc tạo phiên bản mới.
 - Các điểm MatchResult thuộc [0,100]. InputSnapshot giữ đầu vào cũ độc lập dữ liệu hiện tại.
 - Ba cột điểm thành phần MatchResult cho phép null để chuẩn bị cho tiêu chí trọng số bằng 0; tổng điểm vẫn bắt buộc. Engine cũ vẫn chỉ lưu khi đủ cả ba thành phần.

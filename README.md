@@ -59,13 +59,13 @@ Build tự xóa bản `dist` cũ trước khi sinh lại. Có thể xóa riêng 
 
 Trong `src/`, route khai báo đường dẫn API, controller kiểm tra request/quyền truy cập, service xử lý nghiệp vụ. Các phép tính và dịch vụ liên quan Matching đã gom vào `services/matching/`; các service quản lý thực thể còn lại giữ cấu trúc hiện có. Script lấy/nhập dữ liệu nằm trong `scripts/`, không trộn vào luồng request API. Tên lệnh npm được giữ để các hướng dẫn chạy hiện có tiếp tục dùng được.
 
-Các API thử riêng F/S/R dùng chung `src/controllers/preview.controller.ts` và được khai báo trong `src/routes/matching.routes.ts`. Tài liệu tra cứu chính đã gom vào ba file: API, dữ liệu và hướng dẫn test, mỗi file có mục lục riêng.
+Các API Matching V3 được khai báo trong `src/routes/matching-v3.routes.ts`; engine V1 và các form thử cũ đã được gỡ. Tài liệu tra cứu chính đã gom vào ba file: API, dữ liệu và hướng dẫn test, mỗi file có mục lục riêng.
 
 
 ## Bàn giao Matching V3
 
 - [Thứ tự kết nối FE và payload](backend/docs/api/README.md#fe-handoff).
 - [OpenAPI JSON để import Postman](backend/docs/api/matching-v3.openapi.json).
-- Trong backend: `npm test` kiểm tra toàn bộ phần mềm, `npm run test:matching-v3:all` chỉ kiểm tra nhóm V3/hồi quy; `npm run matching:v3:audit` kiểm kê dữ liệu local chỉ đọc.
+- Trong backend: `npm test` kiểm tra toàn bộ phần mềm, `npm run test:matching-v3:all` chỉ kiểm tra nhóm V3; `npm run matching:v3:audit` kiểm kê dữ liệu local chỉ đọc.
 
 Bốn giai đoạn kỹ thuật V3 đã có; dữ liệu ước tính vẫn được gắn nhãn. Lương/hợp đồng/chấn thương thiếu sẽ làm tổng chưa tính được, không tự thay bằng số giả. [Độ phủ và giới hạn kiểm chứng](backend/docs/data/README.md#v3-stage-4).
